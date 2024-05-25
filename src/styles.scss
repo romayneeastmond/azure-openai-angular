@@ -1,1 +1,59 @@
-/* You can add global styles to this file, and also import other style files */
+body {
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f9f9f9;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #f9f9f9;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: rgba(228, 239, 238, 0.25);
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+.hv-100 {
+    height: 100vh !important;
+}
+
+@mixin darkMode() {
+    body {
+        background-color: #212121;
+        color: #fff;
+
+        &::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #171717;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #171717;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: rgba(21, 21, 21, 0.25);
+        }
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    @include darkMode();
+}
+
+html.dark-mode {
+    @include darkMode();
+}

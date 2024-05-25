@@ -1,0 +1,44 @@
+<div class="container-fluid h-100">
+	<div class="row hv-100">
+		<div class="col-3 left-column p-3 d-none d-lg-block d-md-block">
+
+		</div>
+		<div class="col right-column">
+			<div class="d-flex flex-column vh-100">
+				<div class="flex-grow-1 p-3">
+					<markdown [data]="messages"></markdown>
+				</div>
+				<div class="position-relative textarea-wrapper p-3">
+					@if (!loading)
+					{
+					<div class="down-arrow-position" [ngClass]="{'hidden': displayToBottom === false}">
+						<button class="btn btn-link" (click)="scrollToBottom()">
+							<fa-icon [icon]="iconDown"></fa-icon>
+						</button>
+					</div>
+					}
+
+					<textarea #textareaChat class="form-control textarea mb-4 p-3 d-print-none" rows="10" placeholder="Message Azure OpenAI" [(ngModel)]="prompt" (keyup.enter)="onSend()" [attr.disabled]="loading ? true : null" autofocus></textarea>
+
+					<button class="btn btn-secondary btn-sm mb-5 d-print-none send-button" (click)="onSend()" [attr.disabled]="loading ? true : null">Send</button>
+
+					<div class="small d-print-none footer">
+						Azure OpenAI can make mistakes. Check important info.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<button class="btn btn-sm btn-secondary toggle-theme" (click)="onToggleTheme()">
+	<fa-icon [icon]="iconMoon"></fa-icon>
+</button>
+
+<button class="btn btn-sm btn-secondary toggle-theme delete-messages" (click)="onDeleteMessages()" [attr.disabled]="loading ? true : null">
+	<fa-icon [icon]="iconDelete"></fa-icon>
+</button>
+
+<div class="left-column-panel">
+	&nbsp;
+</div>

@@ -1,0 +1,286 @@
+.down-arrow-position {
+	bottom: 140px;
+	position: fixed;
+	margin: 0 auto;
+	text-align: center;
+	width: calc(100% - 293px);
+	z-index: 1;
+
+	button {
+		background-color: #fff !important;
+		border: 1px solid;
+		border-radius: 50% !important;
+		box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+		color: #6c757d !important;
+	}
+}
+
+.delete-messages {
+	left: 50px !important;
+}
+
+.flex-grow-1 {
+	margin-bottom: 120px;
+	padding-left: 150px !important;
+	padding-right: 150px !important;
+}
+
+.footer {
+	color: #7d7d7d;
+	bottom: 10px;
+	position: fixed;
+	text-align: center;
+	width: calc(100% - 293px);
+	z-index: 3;
+}
+
+.left-column {
+	background-color: #f9f9f9;
+	height: 100%;
+	position: relative;
+	width: 236px;
+	z-index: 2;
+}
+
+.left-column-panel {
+	background-color: #f9f9f9;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	width: 236px;
+}
+
+markdown {
+	h1 {
+		font-size: 24px !important;
+	}
+
+	h2 {
+		font-size: 20px !important;
+	}
+
+	h3 {
+		font-size: 18px !important;
+	}
+
+	h4,
+	h5,
+	h6 {
+		font-size: 16px !important;
+	}
+
+	img {
+		width: 100%;
+	}
+
+	p {
+		margin-top: initial !important;
+	}
+
+	pre {
+		white-space: break-spaces;
+	}
+
+	table {
+		border: 1px solid #f4f4f4;
+		border-collapse: collapse;
+		margin-bottom: 1rem;
+		width: 100%;
+
+		tbody {
+			tr {
+				td {
+					border: 1px solid #f4f4f4;
+					padding: 3px;
+					vertical-align: top !important;
+				}
+			}
+		}
+
+		thead {
+			tr {
+				th {
+					border: 1px solid #f4f4f4;
+					padding: 3px;
+					vertical-align: top !important;
+				}
+			}
+		}
+	}
+
+	ul {
+		li {
+			list-style: square;
+		}
+	}
+}
+
+.message-prompt {
+	background-color: rgba(244, 244, 244, 1);
+	border-radius: 1.5rem;
+	max-width: 75%;
+	width: 75%;
+}
+
+.position-relative {
+	position: relative;
+}
+
+.send-button {
+	bottom: 20px;
+	position: fixed;
+	right: 45px;
+	z-index: 3;
+}
+
+span.timestamp {
+	display: block;
+	font-size: 0.7em;
+	opacity: 0.35;
+	text-align: right;
+}
+
+span.timestamp-system {
+	margin-right: 15px;
+}
+
+.textarea {
+	background-color: #f4f4f4;
+	box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+	bottom: 15px;
+	height: 88px;
+	max-height: 200px;
+	min-height: 88px;
+	padding-right: 60px !important;
+	position: fixed;
+	resize: none;
+	width: calc(100% - 293px);
+	z-index: 2;
+
+	&:focus {
+		border-color: #8fbaf9 !important;
+		box-shadow: 0 0 0 0.2rem rgba(212, 219, 229, 0.75) !important;
+	}
+
+	&::-webkit-scrollbar {
+		width: 1px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: #f4f4f4;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #f4f4f4;
+	}
+
+	&::-webkit-scrollbar-thumb:hover {
+		background: #f4f4f4;
+	}
+}
+
+.textarea-wrapper {
+	position: relative;
+
+	&::after {
+		bottom: 0;
+		content: " ";
+		position: fixed;
+		background-color: #fff;
+		height: 60px;
+		left: 236px;
+		width: 100%;
+	}
+}
+
+.toggle-theme {
+	left: 10px;
+	position: fixed;
+	top: 10px;
+	z-index: 4;
+}
+
+@media (max-width: 391px) {
+	.footer {
+		font-size: 12px;
+	}
+}
+
+@media (max-width: 767px) {
+	.flex-grow-1 {
+		padding-left: 1rem !important;
+		padding-right: 1rem !important;
+	}
+
+	.left-column-panel {
+		display: none;
+	}
+
+	.message-prompt {
+		max-width: 100%;
+		width: 100%;
+	}
+
+	.textarea,
+	.down-arrow-position,
+	.footer {
+		width: calc(100% - 60px);
+	}
+
+	.textarea-wrapper {
+		&::after {
+			left: 0;
+		}
+	}
+}
+
+@mixin darkMode() {
+	.down-arrow-position {
+		button {
+			background-color: #212121 !important;
+			color: #fff !important;
+		}
+	}
+
+	.left-column,
+	.left-column-panel {
+		background-color: #171717;
+	}
+
+	.message-prompt {
+		background-color: #2f2f2f;
+	}
+
+	.textarea {
+		background-color: #2f2f2f;
+		color: #ececec;
+
+		&:focus {
+			border-color: #7d7d7d !important;
+			box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.2509803922) !important;
+		}
+
+		&::placeholder {
+			color: #7d7d7d;
+		}
+	}
+
+	.textarea-wrapper {
+		&::after {
+			background-color: #212121;
+		}
+	}
+
+	.toggle-theme {
+		background-color: #7d7d7d;
+		color: #2f2f2f;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	@include darkMode();
+}
+
+html.dark-mode {
+	@include darkMode();
+}
