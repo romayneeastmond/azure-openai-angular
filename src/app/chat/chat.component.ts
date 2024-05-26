@@ -42,6 +42,10 @@ export class ChatComponent implements OnInit {
 	loading = false;
 	prompt = '';
 	messages = '';
+	messagesContext = new Array<{
+		role: '',
+		content: ''
+	}>();
 
 	ngOnInit(): void {
 		const apiKey = environment.api_key;
@@ -85,6 +89,7 @@ export class ChatComponent implements OnInit {
 
 	onDeleteMessages() {
 		this.messages = '';
+		this.messagesContext = [];
 		this.textareaChat.nativeElement.focus();
 	}
 
@@ -130,11 +135,20 @@ export class ChatComponent implements OnInit {
 		);
 
 		const messages = [
-			{ role: 'user', content: prompt },
+			{ role: 'system', content: 'You are a helpful assistant.' }
 		];
+
+		this.messagesContext.forEach(x => {
+			messages.push({ role: x.role, content: x.content });
+		});
+
+		messages.push({ role: 'user', content: prompt });
+
+		console.log(messages);
 
 		this.loading = true;
 
+		let systemMessage = '';
 		const events = await client.streamChatCompletions(this.configuration.deployment, messages);
 
 		for await (const event of events) {
@@ -143,11 +157,15 @@ export class ChatComponent implements OnInit {
 
 				if (delta !== undefined) {
 					this.messages += delta;
+					systemMessage += delta;
 
 					this.scrollToBottom();
 				}
 			}
 		}
+
+		this.messagesContext.push({ role: 'user', content: prompt } as any);
+		this.messagesContext.push({ role: 'system', content: systemMessage } as any);
 
 		this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
 
