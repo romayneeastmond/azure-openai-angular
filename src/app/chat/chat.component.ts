@@ -1,5 +1,5 @@
-import { Component, ElementRef, HostListener, OnInit, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
+import { Component, ElementRef, HostListener, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MarkdownModule } from 'ngx-markdown';
@@ -15,8 +15,7 @@ import { faArrowDown, faMoon, faTrashAlt } from '@fortawesome/free-solid-svg-ico
 		CommonModule,
 		FontAwesomeModule,
 		FormsModule,
-		MarkdownModule,
-		NgClass
+		MarkdownModule
 	],
 	providers: [
 		provideMarkdown()
@@ -43,10 +42,6 @@ export class ChatComponent implements OnInit {
 	loading = false;
 	prompt = '';
 	messages = '';
-
-	constructor(private renderer: Renderer2) {
-
-	}
 
 	ngOnInit(): void {
 		const apiKey = environment.api_key;
@@ -105,8 +100,6 @@ export class ChatComponent implements OnInit {
 		this.sendMessage(this.prompt);
 
 		this.prompt = '';
-
-		console.log('Done')
 	}
 
 	onToggleTheme() {
