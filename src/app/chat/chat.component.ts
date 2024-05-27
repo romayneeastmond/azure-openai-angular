@@ -33,7 +33,8 @@ export class ChatComponent implements OnInit {
 		apiVersion: '',
 		azureEndpoint: '',
 		deployment: '',
-		documentServerlessEndpoint: ''
+		documentServerlessEndpoint: '',
+		documentThreshold: 0
 	};
 
 	displayToBottom = false;
@@ -49,6 +50,10 @@ export class ChatComponent implements OnInit {
 		role: '',
 		content: ''
 	}>();
+	messagesDocuments = new Array<{
+		filename: '',
+		content: ''
+	}>();
 	selectedFiles: File[] = [];
 
 	ngOnInit(): void {
@@ -57,7 +62,8 @@ export class ChatComponent implements OnInit {
 			apiVersion: environment.api_version,
 			azureEndpoint: environment.azure_endpoint,
 			deployment: environment.deployment,
-			documentServerlessEndpoint: environment.document_serverless_endpoint
+			documentServerlessEndpoint: environment.document_serverless_endpoint,
+			documentThreshold: environment.document_threshold
 		};
 	}
 
@@ -81,6 +87,14 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
+	getFirst10000Words(text: string): string {
+		const words = text.split(/\b(?=\w)/u);
+
+		const first10000 = words.slice(0, 10000);
+
+		return first10000.join(" ");
+	}
+
 	getTimestamp(): string {
 		const now = new Date();
 
@@ -90,6 +104,7 @@ export class ChatComponent implements OnInit {
 	onDeleteMessages() {
 		this.messages = '';
 		this.messagesContext = [];
+		this.messagesDocuments = [];
 		this.selectedFiles = [];
 		this.fileUpload.nativeElement.value = '';
 		this.textareaChat.nativeElement.focus();
@@ -171,6 +186,8 @@ export class ChatComponent implements OnInit {
 
 		try {
 			this.loading = true;
+			let fileNames = '';
+			let documentsAboveThreshold = '';
 
 			this.messages += `<div class="alert alert-info">Attaching document${selectedFiles.length !== 1 ? 's' : ''} to conversation. Larger Word, PDF, text, and markdown documents may take longer to process. Please wait.<span class="mt-4 timestamp timestamp-system">${this.getTimestamp()}</span></div>`;
 
@@ -189,16 +206,27 @@ export class ChatComponent implements OnInit {
 					if (x.extension === "Unknown") {
 						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" is not supported. Only Word, PDF, text, and markdown are supported.` } as any)
 					} else {
-						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${x.content}` } as any)
+						let content = x.content.toString();
+
+						if (x.statistics && x.statistics.words && +x.statistics.words > this.configuration.documentThreshold) {
+							this.messagesDocuments.push({ filename: x.filename, content } as any);
+
+							content = this.getFirst10000Words(content);
+
+							documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== 1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
+						}
+
+						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${content}` } as any)
 					}
 				})
 			}
 
-			let fileNames = '';
+			if (documentsAboveThreshold.length > 0)
+				documentsAboveThreshold = '<br />' + documentsAboveThreshold + ' which might affect performance.';
 
 			selectedFiles.forEach(x => { fileNames += `<div>${x.name}</div>`; });
 
-			this.messages += `<div class="documents-attached mb-4"><span><b>${selectedFiles.length} Document${selectedFiles.length !== 1 ? 's' : ''} Added</b>.</span>${fileNames}</div>`;
+			this.messages += `<div class="documents-attached mb-4"><span><b>${selectedFiles.length} Document${selectedFiles.length !== 1 ? 's' : ''} Added</b>.</span>${fileNames}${documentsAboveThreshold}</div>`;
 
 			this.loading = false;
 
