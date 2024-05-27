@@ -20,8 +20,12 @@ body {
 }
 
 .alert {
-    border: 0;
+    background-color: rgb(251 251 251 / 5%);
     border-radius: 1.5rem;
+}
+
+.alert-danger {
+    color: #e83e8c !important;
 }
 
 .hidden {
@@ -52,6 +56,10 @@ body {
         &::-webkit-scrollbar-thumb:hover {
             background: #6c757d;
         }
+    }
+
+    .alert {
+        color: #fff;
     }
 }
 

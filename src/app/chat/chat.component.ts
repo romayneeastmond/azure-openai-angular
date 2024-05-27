@@ -172,6 +172,8 @@ export class ChatComponent implements OnInit {
 		try {
 			this.loading = true;
 
+			this.messages += `<div class="alert alert-info">Attaching document${selectedFiles.length !== 1 ? 's' : ''} to conversation. Larger Word, PDF, text, and markdown documents may take longer to process. Please wait.<span class="mt-4 timestamp timestamp-system">${this.getTimestamp()}</span></div>`;
+
 			const response = await fetch(this.configuration.documentServerlessEndpoint, {
 				method: "POST",
 				body: formData,
@@ -192,7 +194,15 @@ export class ChatComponent implements OnInit {
 				})
 			}
 
+			let fileNames = '';
+
+			selectedFiles.forEach(x => { fileNames += `<div>${x.name}</div>`; });
+
+			this.messages += `<div class="documents-attached mb-4"><span><b>${selectedFiles.length} Document${selectedFiles.length !== 1 ? 's' : ''} Added</b>.</span>${fileNames}</div>`;
+
 			this.loading = false;
+
+			this.scrollToBottom();
 		} catch (error) {
 			console.error('Error fetching data:', error);
 
