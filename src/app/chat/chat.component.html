@@ -18,8 +18,22 @@
 					</div>
 					}
 
-					<textarea #textareaChat class="form-control textarea mb-4 p-3 d-print-none" rows="10" placeholder="Message Azure OpenAI" [(ngModel)]="prompt" (keyup.enter)="onSend()" [attr.disabled]="loading ? true : null" autofocus></textarea>
+					@if (selectedFiles && selectedFiles.length > 0)
+					{
+					<div class="documents-wrapper">
+						@for(file of selectedFiles; track file.name; let i = $index)
+						{
+						<div>
+							{{file.name}}
+							<span><fa-icon (click)="onDocumentDelete(i)" [icon]="iconDelete"></fa-icon></span>
+						</div>
+						}
+					</div>
+					}
 
+					<textarea #textareaChat class="form-control textarea mb-4 p-3 d-print-none" rows="10" placeholder="Message Azure OpenAI" [(ngModel)]="prompt" (keyup.enter)="onSend()" [attr.disabled]="loading ? true : null" autofocus></textarea>
+					<input #fileUpload class="hidden" type="file" multiple accept=".pdf,.docx,.doc,.txt,.md,.markdown" (change)="onDocumentsChange($event)">
+					<button class="btn btn-secondary btn-sm mb-5 d-print-none document-button" (click)="onDocumentsClick($event)" [attr.disabled]="loading ? true : null"><fa-icon [icon]="iconDocument"></fa-icon></button>
 					<button class="btn btn-secondary btn-sm mb-5 d-print-none send-button" (click)="onSend()" [attr.disabled]="loading ? true : null">Send</button>
 
 					<div class="small d-print-none footer">

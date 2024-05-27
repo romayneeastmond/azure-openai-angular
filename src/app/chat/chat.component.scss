@@ -1,10 +1,17 @@
+.document-button {
+	bottom: 10px;
+	position: fixed;
+	right: calc(100% - 310px);
+	z-index: 3;
+}
+
 .down-arrow-position {
-	bottom: 140px;
+	bottom: 125px;
 	position: fixed;
 	margin: 0 auto;
 	text-align: center;
 	width: calc(100% - 293px);
-	z-index: 1;
+	z-index: 4;
 
 	button {
 		background-color: #fff !important;
@@ -17,6 +24,34 @@
 
 .delete-messages {
 	left: 50px !important;
+}
+
+.documents-wrapper {
+	backdrop-filter: blur(1px);
+	bottom: 110px;
+	font-size: 0.8rem;
+	left: 265px;
+	position: fixed;
+	width: calc(100% - 295px);
+	z-index: 3;
+
+	> div {
+		background-color: #fff;
+		border: 1px solid #f4f4f4;
+		display: inline-block;
+		margin-bottom: 10px;
+		margin-right: 10px;
+		padding: 5px;
+		position: relative;
+		border-radius: 6px;
+
+		span {
+			color: #6c757d;
+			cursor: pointer;
+			display: inline-block;
+			margin: 0 5px;
+		}
+	}
 }
 
 .flex-grow-1 {
@@ -127,7 +162,7 @@ markdown {
 }
 
 .send-button {
-	bottom: 20px;
+	bottom: 10px;
 	position: fixed;
 	right: 45px;
 	z-index: 3;
@@ -148,9 +183,10 @@ span.timestamp-system {
 	background-color: #f4f4f4;
 	box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
 	bottom: 15px;
-	height: 88px;
+	height: 70px;
 	max-height: 200px;
 	min-height: 88px;
+	padding-left: 60px !important;
 	padding-right: 60px !important;
 	position: fixed;
 	resize: none;
@@ -207,6 +243,17 @@ span.timestamp-system {
 }
 
 @media (max-width: 767px) {
+	.document-button {
+		bottom: 10px;
+		left: 45px;
+		right: initial;
+	}
+
+	.documents-wrapper {
+		left: 28px;
+		width: calc(100% - 60px);
+	}
+
 	.flex-grow-1 {
 		padding-left: 1rem !important;
 		padding-right: 1rem !important;
@@ -239,6 +286,16 @@ span.timestamp-system {
 		button {
 			background-color: #212121 !important;
 			color: #fff !important;
+		}
+	}
+
+	.documents-wrapper {
+		> div {
+			background-color: #6c757d;
+
+			span {
+				color: #fff;
+			}
 		}
 	}
 

@@ -6,7 +6,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown'
 import { environment } from '../../environments/environment';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { faArrowDown, faMoon, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faMoon, faPaperclip, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
 	selector: 'app-chat',
@@ -25,17 +25,20 @@ import { faArrowDown, faMoon, faTrashAlt } from '@fortawesome/free-solid-svg-ico
 	encapsulation: ViewEncapsulation.None
 })
 export class ChatComponent implements OnInit {
+	@ViewChild('fileUpload') fileUpload!: ElementRef;
 	@ViewChild('textareaChat') textareaChat!: ElementRef;
 
 	configuration = {
 		apiKey: '',
 		apiVersion: '',
 		azureEndpoint: '',
-		deployment: ''
+		deployment: '',
+		documentServerlessEndpoint: ''
 	};
 
 	displayToBottom = false;
 	iconDelete = faTrashAlt;
+	iconDocument = faPaperclip;
 	iconDown = faArrowDown;
 	iconMoon = faMoon;
 	isDarkMode = false;
@@ -46,18 +49,15 @@ export class ChatComponent implements OnInit {
 		role: '',
 		content: ''
 	}>();
+	selectedFiles: File[] = [];
 
 	ngOnInit(): void {
-		const apiKey = environment.api_key;
-		const apiVersion = environment.api_version;
-		const azureEndpoint = environment.azure_endpoint;
-		const deployment = environment.deployment;
-
 		this.configuration = {
-			apiKey,
-			apiVersion,
-			azureEndpoint,
-			deployment
+			apiKey: environment.api_key,
+			apiVersion: environment.api_version,
+			azureEndpoint: environment.azure_endpoint,
+			deployment: environment.deployment,
+			documentServerlessEndpoint: environment.document_serverless_endpoint
 		};
 	}
 
@@ -90,10 +90,35 @@ export class ChatComponent implements OnInit {
 	onDeleteMessages() {
 		this.messages = '';
 		this.messagesContext = [];
+		this.selectedFiles = [];
+		this.fileUpload.nativeElement.value = '';
 		this.textareaChat.nativeElement.focus();
 	}
 
-	onSend() {
+	onDocumentsChange(event: any) {
+		const files = Array.from(event.target.files) as File[];
+
+		this.selectedFiles = [...this.selectedFiles, ...files];
+	}
+
+	onDocumentsClick(event: any) {
+		if (event) {
+			event.preventDefault();
+		}
+
+		this.fileUpload.nativeElement.click();
+	}
+
+	onDocumentDelete(index: number) {
+		if (this.loading) {
+			return;
+		}
+
+		this.selectedFiles.splice(index, 1);
+		this.fileUpload.nativeElement.value = '';
+	}
+
+	async onSend() {
 		if (this.prompt.replaceAll(' ', '').length === 0) {
 			return;
 		}
@@ -102,9 +127,12 @@ export class ChatComponent implements OnInit {
 
 		this.scrollToBottom();
 
+		await this.sendDocuments();
 		this.sendMessage(this.prompt);
 
 		this.prompt = '';
+		this.selectedFiles = [];
+		this.fileUpload.nativeElement.value = '';
 	}
 
 	onToggleTheme() {
@@ -128,46 +156,99 @@ export class ChatComponent implements OnInit {
 		}, 250);
 	}
 
-	async sendMessage(prompt: string) {
-		const client = new OpenAIClient(
-			this.configuration.azureEndpoint,
-			new AzureKeyCredential(this.configuration.apiKey)
-		);
-
-		const messages = [
-			{ role: 'system', content: 'You are a helpful assistant.' }
-		];
-
-		this.messagesContext.forEach(x => {
-			messages.push({ role: x.role, content: x.content });
-		});
-
-		messages.push({ role: 'user', content: prompt });
-
-		console.log(messages);
-
-		this.loading = true;
-
-		let systemMessage = '';
-		const events = await client.streamChatCompletions(this.configuration.deployment, messages);
-
-		for await (const event of events) {
-			for (const choice of event.choices) {
-				let delta = choice.delta?.content;
-
-				if (delta !== undefined) {
-					this.messages += delta;
-					systemMessage += delta;
-
-					this.scrollToBottom();
-				}
-			}
+	async sendDocuments() {
+		if (this.selectedFiles.length === 0) {
+			return;
 		}
 
-		this.messagesContext.push({ role: 'user', content: prompt } as any);
-		this.messagesContext.push({ role: 'system', content: systemMessage } as any);
+		const formData = new FormData();
+		const selectedFiles = this.selectedFiles;
 
-		this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
+		for (let i = 0; i < selectedFiles.length; i++) {
+			const file = selectedFiles[i];
+			formData.append(`file${i}`, file);
+		}
+
+		try {
+			this.loading = true;
+
+			const response = await fetch(this.configuration.documentServerlessEndpoint, {
+				method: "POST",
+				body: formData,
+				headers: {
+					"Accept": "*/*"
+				}
+			});
+
+			const data = await response.json();
+
+			if (data && data[0]) {
+				(data as Array<any>).forEach(x => {
+					if (x.extension === "Unknown") {
+						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" is not supported. Only Word, PDF, text, and markdown are supported.` } as any)
+					} else {
+						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${x.content}` } as any)
+					}
+				})
+			}
+
+			this.loading = false;
+		} catch (error) {
+			console.error('Error fetching data:', error);
+
+			this.loading = false;
+		}
+	}
+
+	async sendMessage(prompt: string) {
+		try {
+			const client = new OpenAIClient(
+				this.configuration.azureEndpoint,
+				new AzureKeyCredential(this.configuration.apiKey)
+			);
+
+			const messages = [
+				{ role: 'system', content: 'You are a helpful assistant.' },
+				{ role: 'user', content: 'Documents and files can be attached directly. If there is ever any confusion mention that you support Word, PDF, text, and markdown documents.' }
+			];
+
+			this.messagesContext.forEach(x => {
+				messages.push({ role: x.role, content: x.content });
+			});
+
+			messages.push({ role: 'user', content: prompt });
+
+			this.loading = true;
+
+			let systemMessage = '';
+			const events = await client.streamChatCompletions(this.configuration.deployment, messages);
+
+			for await (const event of events) {
+				for (const choice of event.choices) {
+					let delta = choice.delta?.content;
+
+					if (delta !== undefined) {
+						this.messages += delta;
+						systemMessage += delta;
+
+						this.scrollToBottom();
+					}
+				}
+			}
+
+			this.messagesContext.push({ role: 'user', content: prompt } as any);
+			this.messagesContext.push({ role: 'system', content: systemMessage } as any);
+
+			this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
+		} catch (error) {
+			console.error('Error completing completion:', error);
+
+			this.messagesContext.push({ role: 'user', content: prompt } as any);
+
+			this.messages += `<div class="alert alert-danger">I have encountered an error. ${(error as any).message}<span class="mt-4 timestamp timestamp-system">${this.getTimestamp()}</span></div>`;
+
+			this.scrollToBottom();
+		}
 
 		setTimeout(() => {
 			this.loading = false;

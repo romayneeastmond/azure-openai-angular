@@ -3,5 +3,6 @@ export const environment = {
     api_key: '',
     api_version: '',
     azure_endpoint: '',
-    deployment: ''
+    deployment: '',
+    document_serverless_endpoint: ''
 };
