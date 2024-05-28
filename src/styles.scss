@@ -11,7 +11,7 @@ body {
     }
 
     &::-webkit-scrollbar-thumb {
-        background: #fff;
+        background: rgba(244, 244, 244, 0.5);
     }
 
     &::-webkit-scrollbar-thumb:hover {
@@ -50,11 +50,11 @@ body {
         }
 
         &::-webkit-scrollbar-thumb {
-            background: #171717;
+            background: rgba(108, 117, 125, 0.5);
         }
 
         &::-webkit-scrollbar-thumb:hover {
-            background: #6c757d;
+            background: rgb(108, 117, 125);
         }
     }
 

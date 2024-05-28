@@ -55,7 +55,7 @@ export class ChatComponent implements OnInit {
 		filename: '',
 		content: ''
 	}>();
-	performPotentialThresholdSearch = false;
+	performThresholdSearch = false;
 	selectedFiles: File[] = [];
 
 	ngOnInit(): void {
@@ -105,11 +105,13 @@ export class ChatComponent implements OnInit {
 	}
 
 	onDeleteMessages() {
+		this.displayToBottom = false;
+		this.fileUpload.nativeElement.value = '';
 		this.messages = '';
 		this.messagesContext = [];
 		this.messagesDocuments = [];
+		this.performThresholdSearch = false;
 		this.selectedFiles = [];
-		this.fileUpload.nativeElement.value = '';
 		this.textareaChat.nativeElement.focus();
 	}
 
@@ -191,8 +193,9 @@ export class ChatComponent implements OnInit {
 			this.loading = true;
 			let fileNames = '';
 			let documentsAboveThreshold = '';
+			let emptyDocuments = '';
 
-			this.messages += `<div class="alert alert-info">Attaching document${selectedFiles.length !== 1 ? 's' : ''} to conversation. Larger Word, PDF, text, and markdown documents may take longer to process. Please wait.<span class="mt-4 timestamp timestamp-system">${this.getTimestamp()}</span></div>`;
+			this.messages += `<div class="alert alert-info">Larger PDF, Word, text, and markdown documents may take longer to process. Attaching ${selectedFiles.length} document${selectedFiles.length !== 1 ? 's' : ''} to conversation. Please wait.<span class="mt-4 timestamp timestamp-system">${this.getTimestamp()}</span></div>`;
 
 			const response = await fetch(this.configuration.documentServerlessEndpoint, {
 				method: "POST",
@@ -212,6 +215,8 @@ export class ChatComponent implements OnInit {
 						let content = x.content.toString();
 
 						if (x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) {
+							this.performThresholdSearch = true;
+
 							this.messagesDocuments.push({ filename: x.filename, content } as any);
 
 							content = this.getFirst10000Words(content);
@@ -219,7 +224,11 @@ export class ChatComponent implements OnInit {
 							documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== -1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
 						}
 
-						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${content}` } as any);
+						if (x.statistics.words == 0) {
+							emptyDocuments += `${x.filename} contains no content that could be processed `;
+						} else {
+							this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${content}` } as any);
+						}
 					}
 				})
 			}
@@ -227,9 +236,12 @@ export class ChatComponent implements OnInit {
 			if (documentsAboveThreshold.length > 0)
 				documentsAboveThreshold = '<br />' + documentsAboveThreshold + ' which might affect performance.';
 
+			if (emptyDocuments.length > 0)
+				emptyDocuments = '<br />' + emptyDocuments + ' results might be affected.';
+
 			selectedFiles.forEach(x => { fileNames += `<div>${x.name}</div>`; });
 
-			this.messages += `<div class="documents-attached mb-4"><span><b>${selectedFiles.length} Document${selectedFiles.length !== 1 ? 's' : ''} Added</b>.</span>${fileNames}${documentsAboveThreshold}</div>`;
+			this.messages += `<div class="documents-attached mb-4"><span><b>${selectedFiles.length} Document${selectedFiles.length !== 1 ? 's' : ''} Added</b>.</span>${fileNames}${documentsAboveThreshold}${emptyDocuments}</div>`;
 
 			this.loading = false;
 
@@ -246,7 +258,7 @@ export class ChatComponent implements OnInit {
 			return;
 		}
 
-		this.messagesDocuments.forEach(async x => {
+		for (let i = 0; i < this.messagesDocuments.length; i++) {
 			try {
 				this.loading = true;
 
@@ -254,7 +266,7 @@ export class ChatComponent implements OnInit {
 					method: "POST",
 					body: JSON.stringify({
 						"query": prompt,
-						"content": x.content
+						"content": this.messagesDocuments[i].content
 					} as any),
 					headers: {
 						"Accept": "*/*"
@@ -271,7 +283,7 @@ export class ChatComponent implements OnInit {
 					});
 
 					if (additionalContent.length > 0) {
-						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has additional content: ${additionalContent}` } as any);
+						this.messagesContext.push({ role: 'user', content: `The document "${this.messagesDocuments[i].filename}" has additional content about "${prompt}", integrate it with your reply. The content is: ${additionalContent}` } as any);
 					}
 				}
 
@@ -281,7 +293,7 @@ export class ChatComponent implements OnInit {
 
 				this.loading = false;
 			}
-		});
+		}
 	}
 
 	async sendMessage(prompt: string) {
@@ -292,17 +304,16 @@ export class ChatComponent implements OnInit {
 			);
 
 			const messages = [
-				{ role: 'system', content: 'You are a helpful assistant.' },
-				{ role: 'user', content: 'Documents and files can be attached directly. If there is ever any confusion mention that you support Word, PDF, text, and markdown documents.' }
+				{ role: 'system', content: 'You are a helpful assistant.' }
 			];
+
+			if (this.performThresholdSearch && this.messagesDocuments.length > 0) {
+				await this.sendSearchDocuments(prompt);
+			}
 
 			this.messagesContext.forEach(x => {
 				messages.push({ role: x.role, content: x.content });
 			});
-
-			if (this.performPotentialThresholdSearch && this.messagesDocuments.length > 0) {
-				await this.sendSearchDocuments(prompt);
-			}
 
 			messages.push({ role: 'user', content: prompt });
 
@@ -328,8 +339,6 @@ export class ChatComponent implements OnInit {
 			this.messagesContext.push({ role: 'system', content: systemMessage } as any);
 
 			this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
-
-			this.performPotentialThresholdSearch = true;
 		} catch (error) {
 			console.error('Error completing completion:', error);
 
