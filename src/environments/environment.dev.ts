@@ -5,5 +5,6 @@ export const environment = {
     azure_endpoint: '',
     deployment: '',
     document_serverless_endpoint: '',
+    document_search_endpoint: '',
     document_threshold: 10000
 };

@@ -34,6 +34,7 @@ export class ChatComponent implements OnInit {
 		azureEndpoint: '',
 		deployment: '',
 		documentServerlessEndpoint: '',
+		documentSearchEndpoint: '',
 		documentThreshold: 0
 	};
 
@@ -54,6 +55,7 @@ export class ChatComponent implements OnInit {
 		filename: '',
 		content: ''
 	}>();
+	performPotentialThresholdSearch = false;
 	selectedFiles: File[] = [];
 
 	ngOnInit(): void {
@@ -63,6 +65,7 @@ export class ChatComponent implements OnInit {
 			azureEndpoint: environment.azure_endpoint,
 			deployment: environment.deployment,
 			documentServerlessEndpoint: environment.document_serverless_endpoint,
+			documentSearchEndpoint: environment.document_search_endpoint,
 			documentThreshold: environment.document_threshold
 		};
 	}
@@ -204,19 +207,19 @@ export class ChatComponent implements OnInit {
 			if (data && data[0]) {
 				(data as Array<any>).forEach(x => {
 					if (x.extension === "Unknown") {
-						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" is not supported. Only Word, PDF, text, and markdown are supported.` } as any)
+						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" is not supported. Only Word, PDF, text, and markdown are supported.` } as any);
 					} else {
 						let content = x.content.toString();
 
-						if (x.statistics && x.statistics.words && +x.statistics.words > this.configuration.documentThreshold) {
+						if (x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) {
 							this.messagesDocuments.push({ filename: x.filename, content } as any);
 
 							content = this.getFirst10000Words(content);
 
-							documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== 1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
+							documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== -1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
 						}
 
-						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${content}` } as any)
+						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${content}` } as any);
 					}
 				})
 			}
@@ -238,6 +241,49 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
+	async sendSearchDocuments(prompt: string) {
+		if (this.messagesDocuments.length === 0) {
+			return;
+		}
+
+		this.messagesDocuments.forEach(async x => {
+			try {
+				this.loading = true;
+
+				const response = await fetch(this.configuration.documentSearchEndpoint, {
+					method: "POST",
+					body: JSON.stringify({
+						"query": prompt,
+						"content": x.content
+					} as any),
+					headers: {
+						"Accept": "*/*"
+					}
+				});
+
+				const data = await response.json();
+
+				if (data && data[0]) {
+					let additionalContent = '';
+
+					(data as Array<any>).forEach(y => {
+						additionalContent += y.content + '\r\n';
+					});
+
+					if (additionalContent.length > 0) {
+						this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has additional content: ${additionalContent}` } as any);
+					}
+				}
+
+				this.loading = false;
+			} catch (error) {
+				console.error('Error fetching data:', error);
+
+				this.loading = false;
+			}
+		});
+	}
+
 	async sendMessage(prompt: string) {
 		try {
 			const client = new OpenAIClient(
@@ -253,6 +299,10 @@ export class ChatComponent implements OnInit {
 			this.messagesContext.forEach(x => {
 				messages.push({ role: x.role, content: x.content });
 			});
+
+			if (this.performPotentialThresholdSearch && this.messagesDocuments.length > 0) {
+				await this.sendSearchDocuments(prompt);
+			}
 
 			messages.push({ role: 'user', content: prompt });
 
@@ -278,6 +328,8 @@ export class ChatComponent implements OnInit {
 			this.messagesContext.push({ role: 'system', content: systemMessage } as any);
 
 			this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
+
+			this.performPotentialThresholdSearch = true;
 		} catch (error) {
 			console.error('Error completing completion:', error);
 

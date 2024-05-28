@@ -45,11 +45,11 @@
 	</div>
 </div>
 
-<button class="btn btn-sm btn-secondary toggle-theme" (click)="onToggleTheme()">
+<button class="btn btn-sm btn-secondary d-print-none toggle-theme" (click)="onToggleTheme()">
 	<fa-icon [icon]="iconMoon"></fa-icon>
 </button>
 
-<button class="btn btn-sm btn-secondary toggle-theme delete-messages" (click)="onDeleteMessages()" [attr.disabled]="loading ? true : null">
+<button class="btn btn-sm btn-secondary toggle-theme d-print-none delete-messages" (click)="onDeleteMessages()" [attr.disabled]="loading ? true : null">
 	<fa-icon [icon]="iconDelete"></fa-icon>
 </button>
 
