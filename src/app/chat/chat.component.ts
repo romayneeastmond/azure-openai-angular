@@ -35,7 +35,8 @@ export class ChatComponent implements OnInit {
 		deployment: '',
 		documentServerlessEndpoint: '',
 		documentSearchEndpoint: '',
-		documentThreshold: 0
+		documentThreshold: 0,
+		websiteServerlessEndpoint: ''
 	};
 
 	displayToBottom = false;
@@ -66,7 +67,8 @@ export class ChatComponent implements OnInit {
 			deployment: environment.deployment,
 			documentServerlessEndpoint: environment.document_serverless_endpoint,
 			documentSearchEndpoint: environment.document_search_endpoint,
-			documentThreshold: environment.document_threshold
+			documentThreshold: environment.document_threshold,
+			websiteServerlessEndpoint: environment.website_serverless_endpoint
 		};
 	}
 
