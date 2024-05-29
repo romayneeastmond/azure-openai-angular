@@ -19,6 +19,14 @@ body {
     }
 }
 
+a {
+    color: #8fbaf9;
+
+    &:hover {
+        color: #b2bfd3;
+    }
+}
+
 .alert {
     background-color: rgb(251 251 251 / 5%);
     border-radius: 1.5rem;
