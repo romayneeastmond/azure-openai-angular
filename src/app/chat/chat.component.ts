@@ -96,12 +96,12 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
-	getFirst10000Words(text: string): string {
+	getFirstWordsByLength(text: string, length: number = 10000): string {
 		const words = text.split(/\b(?=\w)/u);
 
-		const first10000 = words.slice(0, 10000);
+		const firstWords = words.slice(0, length);
 
-		return first10000.join(" ");
+		return firstWords.join(" ");
 	}
 
 	getTitle(text: string): string {
@@ -112,7 +112,7 @@ export class ChatComponent implements OnInit {
 		if (match && match.length > 1) {
 			const title = match[1];
 
-			return title;
+			return this.getFirstWordsByLength(title, 5);
 		}
 
 		return "";
@@ -249,7 +249,7 @@ export class ChatComponent implements OnInit {
 
 							this.messagesDocuments.push({ filename: x.filename, content } as any);
 
-							content = this.getFirst10000Words(content);
+							content = this.getFirstWordsByLength(content, 10000);
 
 							documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== -1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
 						}
@@ -447,7 +447,7 @@ export class ChatComponent implements OnInit {
 
 						this.messagesDocuments.push({ filename: x.url, content } as any);
 
-						content = this.getFirst10000Words(content);
+						content = this.getFirstWordsByLength(content, 10000);
 
 						webistesAboveThreshold += `The website <a href="${x.url}" target="_blank">${x.url}</a> contains ${(+x.statistics.words).toLocaleString('en-US')} words, `;
 					}
