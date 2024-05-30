@@ -19,6 +19,10 @@
         border-radius: 50% !important;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
         color: #6c757d !important;
+
+        &.btn-danger {
+            color: #dc3545 !important;
+        }
     }
 }
 
@@ -143,7 +147,7 @@ markdown {
     }
 
     p {
-        margin-top: initial !important;
+        margin-top: 1rem !important;
     }
 
     pre {
@@ -190,6 +194,7 @@ markdown {
     border-radius: 1.5rem;
     max-width: 75%;
     width: 75%;
+    word-wrap: break-word;
 }
 
 .position-relative {
@@ -301,6 +306,16 @@ span.timestamp-system {
     }
 }
 
+@media (max-width: 420px) {
+    .flex-grow-1 {
+        margin-top: 0;
+    }
+
+    .title {
+        position: relative !important;
+    }
+}
+
 @media (max-width: 767px) {
     .document-button {
         bottom: 10px;
@@ -310,7 +325,7 @@ span.timestamp-system {
 
     .documents-wrapper {
         left: 28px;
-        width: calc(100% - 60px);
+        width: calc(100% - 56px);
     }
 
     .flex-grow-1 {
@@ -352,6 +367,10 @@ span.timestamp-system {
         button {
             background-color: #212121 !important;
             color: #fff !important;
+
+            &.btn-danger {
+                color: #dc3545 !important;
+            }
         }
     }
 
