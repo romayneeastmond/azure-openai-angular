@@ -179,6 +179,7 @@ export class ChatComponent implements OnInit {
 		await this.sendDocuments();
 		await this.sendWebsites(this.prompt);
 		this.sendMessage(this.prompt);
+		this.reduceMessageContext();
 
 		this.prompt = '';
 		this.selectedFiles = [];
@@ -194,6 +195,62 @@ export class ChatComponent implements OnInit {
 			htmlTag?.classList.add('dark-mode');
 		} else {
 			htmlTag?.classList.remove('dark-mode');
+		}
+	}
+
+	reduceMessageContext() {
+		if (this.messagesContext.length <= 5) {
+			return;
+		}
+
+		if (this.configuration.documentThreshold === 0) {
+			this.messagesContext = this.messagesContext.filter(x => !x.content.includes(', integrate it with your reply. The content is: '));
+		}
+
+		if (this.messagesContext.length > 5) {
+			for (let i = 0; i < this.messagesContext.length; i++) {
+				if (this.messagesContext[i].role.includes('user') && !this.messagesContext[i].content.includes(', integrate it with your reply. The content is: ')) {
+					if (this.messagesContext[i].content.split(' ').length > 500) {
+						this.messagesContext[i].content = this.getFirstWordsByLength(this.messagesContext[i].content, 400) as any;
+					}
+				}
+			}
+		}
+
+		if (this.messagesContext.length > 10) {
+			const userMessagesContextCount = this.messagesContext.filter(x => x.role.includes('user')).length;
+			const systemMessagesContextCount = this.messagesContext.filter(x => x.role.includes('system')).length;
+
+			let deletedUserMessages = 0;
+			let deletedSystemMessages = 0;
+
+			for (let i = 0; i < this.messagesContext.length; i++) {
+				if (this.messagesContext[i].role.includes('user')) {
+					if (deletedUserMessages >= userMessagesContextCount - 3) {
+						continue;
+					}
+
+					this.messagesContext.splice(i, 1);
+
+					i--;
+					deletedUserMessages++;
+				}
+			}
+
+			if (systemMessagesContextCount >= 5) {
+				for (let i = 0; i < this.messagesContext.length; i++) {
+					if (this.messagesContext[i].role.includes('system')) {
+						if (deletedSystemMessages >= systemMessagesContextCount - 3) {
+							continue;
+						}
+
+						this.messagesContext.splice(i, 1);
+
+						i--;
+						deletedSystemMessages++;
+					}
+				}
+			}
 		}
 	}
 
