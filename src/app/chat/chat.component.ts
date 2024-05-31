@@ -105,14 +105,14 @@ export class ChatComponent implements OnInit {
 	}
 
 	getTitle(text: string): string {
-		const regex = /<!--SUMMARY:\s*(.*?)\s*-->/;
+		const regex = /<!--\s*SUMMARY:\s*(.*?)\s*-->/;
 
 		const match = regex.exec(text);
 
 		if (match && match.length > 1) {
 			const title = match[1];
 
-			return this.getFirstWordsByLength(title, 5);
+			return this.getFirstWordsByLength(title, 5).replaceAll("' s", "'s");
 		}
 
 		return "";
@@ -244,7 +244,7 @@ export class ChatComponent implements OnInit {
 					} else {
 						let content = x.content.toString();
 
-						if (x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) {
+						if ((x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) || this.configuration.documentThreshold == 0) {
 							this.performThresholdSearch = true;
 
 							this.messagesDocuments.push({ filename: x.filename, content } as any);
@@ -254,17 +254,25 @@ export class ChatComponent implements OnInit {
 							documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== -1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
 						}
 
-						if (x.statistics.words == 0) {
+						if (x.statistics.words === 0) {
 							emptyDocuments += `${x.filename} contains no content that could be processed `;
-						} else {
+						} else if (x.statistics.words !== 0 && this.configuration.documentThreshold !== 0) {
 							this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has the content: ${content}` } as any);
+						} else {
+							this.messagesContext.push({ role: 'user', content: `The document "${x.filename}" has been added to the conversation.` } as any);
 						}
 					}
 				});
 			}
 
-			if (documentsAboveThreshold.length > 0)
-				documentsAboveThreshold = `<br />${documentsAboveThreshold} which might affect performance. The first ${(+this.configuration.documentThreshold).toLocaleString('en-US')} words are automatically added to the conversational context.`;
+			if (documentsAboveThreshold.length > 0) {
+				documentsAboveThreshold = `<br />${documentsAboveThreshold} which might affect performance.`;
+
+				if (this.configuration.documentThreshold > 0) {
+					documentsAboveThreshold += ` The first ${(+this.configuration.documentThreshold).toLocaleString('en-US')} words are automatically added to the conversational context.`;
+				}
+
+			}
 
 			if (emptyDocuments.length > 0)
 				emptyDocuments = '<br />' + emptyDocuments + ' results might be affected.';
@@ -284,7 +292,7 @@ export class ChatComponent implements OnInit {
 	}
 
 	async sendSearchDocuments(prompt: string) {
-		if (this.messagesDocuments.length === 0 || prompt.split(' ').length < 4) {
+		if (this.messagesDocuments.length === 0 || (this.configuration.documentThreshold !== 0 && prompt.split(' ').length < 4)) {
 			return;
 		}
 
@@ -442,7 +450,7 @@ export class ChatComponent implements OnInit {
 
 					urls += `<div>${x.url}</div>`;
 
-					if (x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) {
+					if ((x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) || this.configuration.documentThreshold === 0) {
 						this.performThresholdSearch = true;
 
 						this.messagesDocuments.push({ filename: x.url, content } as any);
@@ -452,10 +460,12 @@ export class ChatComponent implements OnInit {
 						webistesAboveThreshold += `The website <a href="${x.url}" target="_blank">${x.url}</a> contains ${(+x.statistics.words).toLocaleString('en-US')} words, `;
 					}
 
-					if (x.statistics.words == 0) {
+					if (x.statistics.words === 0) {
 						emptyWebsites += `${x.url} contains no content that could be processed `;
-					} else {
+					} else if (x.statistics.words !== 0 && this.configuration.documentThreshold !== 0) {
 						this.messagesContext.push({ role: 'user', content: `The website "${x.url}" has the content: ${content}` } as any);
+					} else {
+						this.messagesContext.push({ role: 'user', content: `The website "${x.url}" has been added to the conversation.` } as any);
 					}
 				});
 

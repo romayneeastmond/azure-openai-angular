@@ -1,3 +1,7 @@
+.delete-messages {
+    left: 50px !important;
+}
+
 .document-button {
     bottom: 10px;
     position: fixed;
@@ -26,10 +30,6 @@
     }
 }
 
-.delete-messages {
-    left: 50px !important;
-}
-
 .documents-attached {
     > div {
         background-color: #fff;
@@ -50,7 +50,6 @@
 }
 
 .documents-wrapper {
-    backdrop-filter: blur(1px);
     bottom: 110px;
     font-size: 0.8rem;
     left: 265px;
