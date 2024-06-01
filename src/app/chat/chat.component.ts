@@ -104,20 +104,6 @@ export class ChatComponent implements OnInit {
 		return firstWords.join(" ");
 	}
 
-	getTitle(text: string): string {
-		const regex = /<!--\s*SUMMARY:\s*(.*?)\s*-->/;
-
-		const match = regex.exec(text);
-
-		if (match && match.length > 1) {
-			const title = match[1];
-
-			return this.getFirstWordsByLength(title, 5).replaceAll("' ", "'");
-		}
-
-		return "";
-	}
-
 	getTimestamp(): string {
 		const now = new Date();
 
@@ -454,10 +440,18 @@ export class ChatComponent implements OnInit {
 
 			this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
 
-			if (this.summaryCount === 1 && systemMessage.includes("<!--SUMMARY:")) {
-				this.title = this.getTitle(systemMessage);
+			if (this.summaryCount === 1) {
+				const regex = /<!--\s*SUMMARY:\s*(.*?)\s*-->/;
 
-				this.summaryCount = this.summaryCount + 1;
+				const match = regex.exec(systemMessage);
+
+				if (match && match.length > 1) {
+					this.summaryCount = this.summaryCount + 1;
+
+					const title = match[1];
+
+					this.title = this.getFirstWordsByLength(title, 5).replaceAll("' ", "'");
+				}
 			}
 		} catch (error) {
 			console.error('Error completing completion:', error);

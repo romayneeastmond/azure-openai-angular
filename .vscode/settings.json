@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/fd15fc7d-6c11-4e4f-8bd6-2fcc9dfd1e29/resourceGroups/dev-openaiservices-re02/providers/Microsoft.Web/sites/dev-azure-openai-chat-demo-re01",
+    "appService.deploySubpath": "dist\\browser"
+}

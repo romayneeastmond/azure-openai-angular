@@ -361,6 +361,13 @@ span.timestamp-system {
     }
 }
 
+@media (min-width: 1500px) {
+    .flex-grow-1 {
+        padding-left: 250px !important;
+        padding-right: 250px !important;
+    }
+}
+
 @mixin darkMode() {
     .down-arrow-position {
         button {
