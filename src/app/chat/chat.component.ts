@@ -112,7 +112,7 @@ export class ChatComponent implements OnInit {
 		if (match && match.length > 1) {
 			const title = match[1];
 
-			return this.getFirstWordsByLength(title, 5).replaceAll("' s", "'s");
+			return this.getFirstWordsByLength(title, 5).replaceAll("' ", "'");
 		}
 
 		return "";
@@ -441,6 +441,8 @@ export class ChatComponent implements OnInit {
 					if (delta !== undefined) {
 						this.messages += delta;
 						systemMessage += delta;
+
+						await new Promise(response => setTimeout(response, 100));
 
 						this.scrollToBottom();
 					}
