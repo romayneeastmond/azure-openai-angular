@@ -200,6 +200,14 @@ markdown {
     position: relative;
 }
 
+pre code {
+    background-color: rgba(13, 13, 13, 1);
+    display: inline-block;
+    padding: 1rem !important;
+    margin-top: 20px;
+    width: 100%;
+}
+
 .send-button {
     bottom: 10px;
     position: fixed;
