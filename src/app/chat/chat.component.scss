@@ -461,7 +461,8 @@ html.dark-mode {
         display: none !important;
     }
 
-    .textarea {
+    .textarea,
+    .textarea-wrapper::after {
         display: none !important;
     }
 
