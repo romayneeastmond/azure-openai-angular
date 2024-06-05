@@ -7,5 +7,6 @@ export const environment = {
     document_serverless_endpoint: '',
     document_search_endpoint: '',
     document_threshold: 10000,
-    website_serverless_endpoint: ''
+    website_serverless_endpoint: '',
+    word_serverless_endpoint: ''
 };

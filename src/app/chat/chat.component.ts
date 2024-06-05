@@ -6,7 +6,8 @@ import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown'
 import { environment } from '../../environments/environment';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { faArrowDown, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faFileWord, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { env } from 'node:process';
 
 @Component({
 	selector: 'app-chat',
@@ -37,7 +38,8 @@ export class ChatComponent implements OnInit {
 		documentServerlessEndpoint: '',
 		documentSearchEndpoint: '',
 		documentThreshold: 0,
-		websiteServerlessEndpoint: ''
+		websiteServerlessEndpoint: '',
+		wordServerlessEndpoint: ''
 	};
 	displayToBottom = false;
 	iconDelete = faTrashAlt;
@@ -45,6 +47,7 @@ export class ChatComponent implements OnInit {
 	iconDown = faArrowDown;
 	iconMoon = faMoon;
 	iconStop = faStop;
+	iconWord = faFileWord;
 	isDarkMode = false;
 	loading = false;
 	prompt = '';
@@ -72,7 +75,8 @@ export class ChatComponent implements OnInit {
 			documentServerlessEndpoint: environment.document_serverless_endpoint,
 			documentSearchEndpoint: environment.document_search_endpoint,
 			documentThreshold: environment.document_threshold,
-			websiteServerlessEndpoint: environment.website_serverless_endpoint
+			websiteServerlessEndpoint: environment.website_serverless_endpoint,
+			wordServerlessEndpoint: environment.word_serverless_endpoint
 		};
 	}
 
@@ -151,6 +155,51 @@ export class ChatComponent implements OnInit {
 
 		this.selectedFiles.splice(index, 1);
 		this.fileUpload.nativeElement.value = '';
+	}
+
+	async onExportConversation() {
+		const regex = /<span class="[^>]*timestamp[^>]*">.*?<\/span>/g;
+
+		const content = this.messages.replace(regex, '');
+
+		const response = await fetch(this.configuration.wordServerlessEndpoint, {
+			method: "POST",
+			body: JSON.stringify({
+				"content": content
+			} as any),
+			headers: {
+				"Accept": "*/*"
+			}
+		});
+
+		const data = await response.body as ReadableStream<Uint8Array>;
+
+		const reader = data.getReader();
+		const chunks: Uint8Array[] = [];
+		let done = false;
+
+		while (!done) {
+			const { done: streamDone, value } = await reader.read();
+			if (streamDone) {
+				done = true;
+			} else {
+				chunks.push(value);
+			}
+		}
+
+		const blob = new Blob(chunks, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+
+		const url = URL.createObjectURL(blob);
+
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${this.title.toLocaleLowerCase().replace(/[^a-zA-Z0-9 ]/g, '').replaceAll(' ', '-')}-conversation.docx`;
+
+		document.body.appendChild(a);
+		a.click();
+
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
 	}
 
 	async onSend() {
@@ -450,7 +499,7 @@ export class ChatComponent implements OnInit {
 
 					const title = match[1];
 
-					this.title = this.getFirstWordsByLength(title, 5).replaceAll("' ", "'");
+					this.title = this.getFirstWordsByLength(title, 5).replaceAll("' ", "'").replaceAll("  ", " ");
 				}
 			}
 		} catch (error) {
