@@ -15,8 +15,13 @@
 .button-settings {
     background-color: transparent;
     border: 0;
-    color: #ccc;
+    color: #ccc !important;
     margin-top: -5px;
+
+    &:active,
+    &:hover {
+        background-color: transparent !important;
+    }
 }
 
 .conversation-settings {
@@ -413,7 +418,7 @@ span.timestamp-system {
     .button-settings {
         position: fixed;
         top: 20px;
-        right: 10px;
+        right: 5px;
     }
 
     .conversation-settings {
@@ -468,6 +473,11 @@ span.timestamp-system {
     .model-settings-menu {
         left: auto;
         right: 28px;
+        top: 50px;
+    }
+
+    .model-settings-menu {
+        top: 14px !important;
     }
 
     .textarea,

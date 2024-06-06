@@ -258,6 +258,11 @@ export class ChatComponent implements OnInit {
 	onSettings() {
 		this.displaySettings = true;
 		this.titleTemporary = this.title;
+
+		window.scrollTo({
+			top: 0,
+			behavior: 'smooth'
+		});
 	}
 
 	onSettingsCancel() {
