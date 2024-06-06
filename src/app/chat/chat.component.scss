@@ -6,6 +6,28 @@
     left: 90px !important;
 }
 
+.button-settings {
+    background-color: transparent;
+    border: 0;
+    color: #ccc;
+    margin-top: -5px;
+}
+
+.conversation-settings {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+    left: 265px;
+    position: fixed;
+    top: 100px;
+    width: 300px;
+    z-index: 6;
+
+    label {
+        font-weight: bold;
+    }
+}
+
 .document-button {
     bottom: 10px;
     position: fixed;
@@ -94,6 +116,13 @@
     text-align: center;
     width: calc(100% - 293px);
     z-index: 3;
+}
+
+.form-control {
+    &:focus {
+        border-color: #8fbaf9 !important;
+        box-shadow: 0 0 0 0.2rem rgba(212, 219, 229, 0.75) !important;
+    }
 }
 
 .left-column {
@@ -320,16 +349,35 @@ span.timestamp-system {
 }
 
 @media (max-width: 420px) {
+    .button-settings {
+        position: fixed;
+        top: 20px;
+        right: 10px;
+    }
+
+    .conversation-settings {
+        left: 15px !important;
+        position: relative !important;
+        top: -20px !important;
+    }
+
     .flex-grow-1 {
         margin-top: 0;
     }
 
     .title {
+        font-size: 1.65em !important;
+        margin-left: 0 !important;
         position: relative !important;
     }
 }
 
 @media (max-width: 767px) {
+    .conversation-settings {
+        left: 28px;
+        top: 110px;
+    }
+
     .document-button {
         bottom: 10px;
         left: 45px;
@@ -368,7 +416,7 @@ span.timestamp-system {
     }
 
     .title {
-        margin-left: -10px;
+        margin-left: -2px;
         padding-top: 3rem !important;
         width: 100%;
         z-index: 3;
@@ -383,6 +431,15 @@ span.timestamp-system {
 }
 
 @mixin darkMode() {
+    .conversation-settings {
+        background-color: #171717;
+
+        .form-control {
+            background-color: #2f2f2f;
+            color: #ececec;
+        }
+    }
+
     .down-arrow-position {
         button {
             background-color: #212121 !important;

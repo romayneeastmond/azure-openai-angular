@@ -6,7 +6,28 @@
 		<div class="col right-column">
 			@if (title && title.length > 0)
 			{
-			<h1 class="pb-4 pt-4 ps-3 title fade-in">{{title}}</h1>
+			<h1 class="pb-4 pt-4 ps-3 title fade-in">
+				{{title}}
+
+				<button class="btn btn-secondary btn-sm d-print-none button-settings" (click)="onSettings()">
+					<fa-icon [icon]="iconSettings"></fa-icon>
+				</button>
+			</h1>
+			}
+
+			@if (displaySettings === true) {
+			<div class="conversation-settings p-3 d-print-none">
+				<div>
+					<div class="mb-3">
+						<label>Title</label>
+						<input type="text" class="form-control" [(ngModel)]="titleTemporary">
+					</div>
+					<div>
+						<button class="btn btn-sm btn-outline-secondary me-1" (click)="onSettingsCancel()">Cancel</button>
+						<button class="btn btn-sm btn-secondary" (click)="onSettingsSave()">Save</button>
+					</div>
+				</div>
+			</div>
 			}
 
 			<div class="d-flex flex-column vh-100">

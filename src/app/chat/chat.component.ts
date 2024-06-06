@@ -6,7 +6,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown'
 import { environment } from '../../environments/environment';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { faArrowDown, faFileWord, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faCog, faFileWord, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { env } from 'node:process';
 
 @Component({
@@ -42,10 +42,12 @@ export class ChatComponent implements OnInit {
 		wordServerlessEndpoint: ''
 	};
 	displayToBottom = false;
+	displaySettings = false;
 	iconDelete = faTrashAlt;
 	iconDocument = faPaperclip;
 	iconDown = faArrowDown;
 	iconMoon = faMoon;
+	iconSettings = faCog;
 	iconStop = faStop;
 	iconWord = faFileWord;
 	isDarkMode = false;
@@ -65,6 +67,7 @@ export class ChatComponent implements OnInit {
 	stopGeneration = false;
 	summaryCount = 1;
 	title = '';
+	titleTemporary = '';
 
 	ngOnInit(): void {
 		this.configuration = {
@@ -122,6 +125,7 @@ export class ChatComponent implements OnInit {
 	onDeleteMessages() {
 		this.cancelGeneration = false;
 		this.displayToBottom = false;
+		this.displaySettings = false;
 		this.fileUpload.nativeElement.value = '';
 		this.messages = '';
 		this.messagesContext = [];
@@ -132,6 +136,7 @@ export class ChatComponent implements OnInit {
 		this.stopGeneration = false;
 		this.textareaChat.nativeElement.focus();
 		this.title = '';
+		this.titleTemporary = '';
 	}
 
 	onDocumentsChange(event: any) {
@@ -203,7 +208,7 @@ export class ChatComponent implements OnInit {
 	}
 
 	async onSend() {
-		if (this.prompt.replaceAll(' ', '').length === 0) {
+		if (this.prompt.replace(/\s/g, '').length === 0) {
 			return;
 		}
 
@@ -219,6 +224,23 @@ export class ChatComponent implements OnInit {
 		this.prompt = '';
 		this.selectedFiles = [];
 		this.fileUpload.nativeElement.value = '';
+	}
+
+	onSettings() {
+		this.displaySettings = true;
+		this.titleTemporary = this.title;
+	}
+
+	onSettingsCancel() {
+		this.displaySettings = false;
+	}
+
+	onSettingsSave() {
+		if (this.titleTemporary.replace(/\s/g, '').length !== 0) {
+			this.title = this.titleTemporary;
+			this.titleTemporary = '';
+			this.onSettingsCancel();
+		}
 	}
 
 	onToggleTheme() {
