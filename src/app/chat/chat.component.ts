@@ -6,8 +6,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown'
 import { environment } from '../../environments/environment';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { faArrowDown, faCog, faFileWord, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { env } from 'node:process';
+import { faAngleDown, faArrowDown, faCheck, faCog, faFileWord, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
 	selector: 'app-chat',
@@ -35,6 +34,7 @@ export class ChatComponent implements OnInit {
 		apiVersion: '',
 		azureEndpoint: '',
 		deployment: '',
+		deployments: [{ name: '', description: '', threshold: '' }],
 		documentServerlessEndpoint: '',
 		documentSearchEndpoint: '',
 		documentThreshold: 0,
@@ -43,9 +43,12 @@ export class ChatComponent implements OnInit {
 	};
 	displayToBottom = false;
 	displaySettings = false;
+	displaySettingsModel = false;
+	iconCheckmark = faCheck;
 	iconDelete = faTrashAlt;
 	iconDocument = faPaperclip;
 	iconDown = faArrowDown;
+	iconDropdown = faAngleDown;
 	iconMoon = faMoon;
 	iconSettings = faCog;
 	iconStop = faStop;
@@ -75,6 +78,7 @@ export class ChatComponent implements OnInit {
 			apiVersion: environment.api_version,
 			azureEndpoint: environment.azure_endpoint,
 			deployment: environment.deployment,
+			deployments: environment.deployments as [any],
 			documentServerlessEndpoint: environment.document_serverless_endpoint,
 			documentSearchEndpoint: environment.document_search_endpoint,
 			documentThreshold: environment.document_threshold,
@@ -124,8 +128,11 @@ export class ChatComponent implements OnInit {
 
 	onDeleteMessages() {
 		this.cancelGeneration = false;
+		this.configuration.deployment = environment.deployment;
+		this.configuration.documentThreshold = environment.document_threshold;
 		this.displayToBottom = false;
 		this.displaySettings = false;
+		this.displaySettingsModel = false;
 		this.fileUpload.nativeElement.value = '';
 		this.messages = '';
 		this.messagesContext = [];
@@ -137,6 +144,17 @@ export class ChatComponent implements OnInit {
 		this.textareaChat.nativeElement.focus();
 		this.title = '';
 		this.titleTemporary = '';
+	}
+
+	onDeploymentChange(event: any, configuration: any) {
+		event.stopPropagation();
+
+		this.configuration.deployment = configuration.name;
+		this.configuration.documentThreshold = configuration.threshold;
+
+		setTimeout(() => {
+			this.displaySettingsModel = false;
+		}, 1500);
 	}
 
 	onDocumentsChange(event: any) {
@@ -205,6 +223,17 @@ export class ChatComponent implements OnInit {
 
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
+	}
+
+	onModelSettings(event: any) {
+		event.stopPropagation();
+
+		this.displaySettings = false;
+		this.displaySettingsModel = !this.displaySettingsModel;
+	}
+
+	onModelSettingsClose() {
+		this.displaySettingsModel = false;
 	}
 
 	async onSend() {

@@ -1,3 +1,9 @@
+.btn {
+    transition:
+        background-color 0.4s ease-in-out,
+        color 0.4s ease-in-out;
+}
+
 .button-delete-messages {
     left: 50px !important;
 }
@@ -118,7 +124,8 @@
     z-index: 3;
 }
 
-.form-control {
+.form-control,
+.form-select {
     &:focus {
         border-color: #8fbaf9 !important;
         box-shadow: 0 0 0 0.2rem rgba(212, 219, 229, 0.75) !important;
@@ -227,6 +234,60 @@ markdown {
     max-width: 75%;
     width: 75%;
     word-wrap: break-word;
+}
+
+.model-settings {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+    left: 265px;
+    position: fixed;
+    top: 40px;
+    width: 300px;
+    z-index: 7;
+
+    button {
+        border: 0 !important;
+        display: block;
+        position: relative;
+        text-align: left;
+        width: 100%;
+
+        &:hover {
+            background-color: #dee2e6;
+        }
+
+        > div {
+            float: left;
+        }
+
+        fa-icon {
+            position: absolute;
+            right: 10px;
+        }
+    }
+
+    .small {
+        color: #ccc;
+    }
+}
+
+.model-settings-menu {
+    left: 258px;
+    position: fixed;
+    top: 5px;
+    z-index: 7;
+
+    button {
+        border: 0 !important;
+        color: #7d7d7d;
+        font-size: 1rem;
+        font-weight: 500;
+
+        fa-icon {
+            color: #ccc;
+        }
+    }
 }
 
 .position-relative {
@@ -403,6 +464,12 @@ span.timestamp-system {
         width: 100%;
     }
 
+    .model-settings,
+    .model-settings-menu {
+        left: auto;
+        right: 28px;
+    }
+
     .textarea,
     .down-arrow-position,
     .footer {
@@ -474,6 +541,20 @@ span.timestamp-system {
 
     .message-prompt {
         background-color: #2f2f2f;
+    }
+
+    .model-settings {
+        background-color: #171717;
+
+        button {
+            color: #fff;
+        }
+    }
+
+    .model-settings-menu {
+        button {
+            color: #fff;
+        }
     }
 
     .textarea {

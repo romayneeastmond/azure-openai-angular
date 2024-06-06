@@ -4,6 +4,11 @@ export const environment = {
     api_version: '',
     azure_endpoint: '',
     deployment: '',
+    deployments: [{
+        name: '',
+        description: '',
+        threshold: 10000
+    }],
     document_serverless_endpoint: '',
     document_search_endpoint: '',
     document_threshold: 10000,
