@@ -22,6 +22,17 @@
     &:hover {
         background-color: transparent !important;
     }
+
+    &:hover {
+        fa-icon {
+            transform: rotate(180deg);
+        }
+    }
+
+    fa-icon {
+        display: inline-block;
+        transition: transform 0.5s ease-in-out;
+    }
 }
 
 .conversation-settings {
