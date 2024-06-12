@@ -55,6 +55,31 @@
 			<div class="d-flex flex-column vh-100">
 				<div class="flex-grow-1 p-3">
 					<markdown [data]="messages"></markdown>
+
+					@if (messages.length === 0 && prompt.length === 0)
+					{
+					<div class="mt-5">
+						<h4 class="mb-0">Streaming Demonstration using Azure OpenAI and Angular 18</h4>
+
+						<p class="small">
+							Source:
+							<a href="https://github.com/romayneeastmond/azure-openai-angular" target="_blank">Angular 18 Frontend</a> and
+							<a href="https://github.com/romayneeastmond/azure-python-serverless-functions" target="_blank">Azure Python Serverless Functions Backend</a>
+						</p>
+
+						<h6 class="mt-4 mb-4">Example Prompts</h6>
+
+						<div class="example-prompts row">
+							@for(example of getExamplePrompts(); track example.prompt)
+							{
+							<div class="col-lg-4 col-md-12 col-sm-12 col-xs-12 mb-4 position-relative">
+								<fa-icon [icon]="example.icon" [style]="'color: ' + getRandomColor()"></fa-icon>
+								<button class="btn p-3 d-flex" (click)="onPromptCreate(example.prompt, example.flow)">{{example.prompt}}</button>
+							</div>
+							}
+						</div>
+					</div>
+					}
 				</div>
 				<div class="position-relative textarea-wrapper p-3">
 					@if (!loading)
@@ -85,6 +110,16 @@
 							<span><fa-icon (click)="onDocumentDelete(i)" [icon]="iconDelete"></fa-icon></span>
 						</div>
 						}
+					</div>
+					}
+
+					@if (displayPromptFlow === true )
+					{
+					<div class="documents-wrapper">
+						<div class="flow">
+							{{promptFlow}}
+							<span (click)="onPrommptCancel()"><fa-icon [icon]="iconClose"></fa-icon> Cancel Prompt</span>
+						</div>
 					</div>
 					}
 

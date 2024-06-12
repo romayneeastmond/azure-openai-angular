@@ -115,12 +115,39 @@
         position: relative;
         border-radius: 6px;
 
+        &.flow {
+            border: 1px solid #9eeaf9;
+        }
+
         span {
             color: #6c757d;
             cursor: pointer;
             display: inline-block;
             margin: 0 5px;
         }
+    }
+}
+
+.example-prompts {
+    button {
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+        display: inline-block;
+        height: 100%;
+        padding-top: 40px !important;
+        text-align: left;
+        width: 100%;
+
+        &:hover {
+            background-color: #f9f9f9;
+        }
+    }
+
+    fa-icon {
+        position: absolute;
+        left: 30px;
+        top: 10px;
     }
 }
 
@@ -347,7 +374,7 @@ span.timestamp-system {
     max-height: 200px;
     min-height: 88px;
     padding-left: 60px !important;
-    padding-right: 60px !important;
+    padding-right: 80px !important;
     position: fixed;
     resize: none;
     width: calc(100% - 293px);
@@ -551,6 +578,17 @@ span.timestamp-system {
 
             span {
                 color: #fff;
+            }
+        }
+    }
+
+    .example-prompts {
+        button {
+            background-color: #6c757d;
+            color: #fff;
+
+            &:hover {
+                background-color: #5c636a;
             }
         }
     }

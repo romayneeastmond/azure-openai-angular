@@ -6,7 +6,10 @@ import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown'
 import { environment } from '../../environments/environment';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { faAngleDown, faArrowDown, faCheck, faCog, faFileWord, faMoon, faPaperclip, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+	IconDefinition, faAngleDown, faArrowDown, faCheck, faClose, faCog, faFileWord, faGavel, faGlobe, faGraduationCap, faMoon,
+	faPaperclip, faStop, faTrashAlt
+} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
 	selector: 'app-chat',
@@ -42,20 +45,26 @@ export class ChatComponent implements OnInit {
 		wordServerlessEndpoint: ''
 	};
 	displayToBottom = false;
+	displayPromptFlow = false;
 	displaySettings = false;
 	displaySettingsModel = false;
 	iconCheckmark = faCheck;
+	iconClose = faClose;
 	iconDelete = faTrashAlt;
 	iconDocument = faPaperclip;
 	iconDown = faArrowDown;
 	iconDropdown = faAngleDown;
+	iconLegal = faGavel;
 	iconMoon = faMoon;
+	iconSchool = faGraduationCap;
 	iconSettings = faCog;
 	iconStop = faStop;
+	iconWebsite = faGlobe;
 	iconWord = faFileWord;
 	isDarkMode = false;
 	loading = false;
 	prompt = '';
+	promptFlow = '';
 	messages = '';
 	messagesContext = new Array<{
 		role: '',
@@ -107,12 +116,48 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
+	getExamplePrompts(): any[] {
+		const examples = new Array<{
+			prompt: '',
+			flow: string | null,
+			icon: IconDefinition
+		}>();
+
+		examples.push({
+			prompt: 'Provide an explanation for the concepts that make up the SOLID principle in programming. I\'m curious since I\'m learning to code.',
+			flow: null,
+			icon: this.iconSchool
+		} as any);
+
+		examples.push({
+			prompt: 'Summarize the key details of a court case; include the parties involved, the court and jurisdiction, the main issues, facts, and decision.',
+			flow: 'Before continuing, please attach the document(s) for summarization.',
+			icon: this.iconLegal
+		} as any);
+
+		examples.push({
+			prompt: 'I found this interesting website that might be useful. I would love to send my team a summary. Please help with drafting the email. ',
+			flow: 'Before continuing provide the URL(s) for any site you are interested in.',
+			icon: this.iconWebsite
+		} as any);
+
+		return examples;
+	}
+
 	getFirstWordsByLength(text: string, length: number = 10000): string {
 		const words = text.split(/\b(?=\w)/u);
 
 		const firstWords = words.slice(0, length);
 
 		return firstWords.join(" ");
+	}
+
+	getRandomColor(): string {
+		const colours = ["#ED6262", "#E2C541", "#76D0EB", "#CB8BD0"];
+
+		const randomIndex = Math.floor(Math.random() * colours.length);
+
+		return colours[randomIndex];
 	}
 
 	getTimestamp(): string {
@@ -131,6 +176,7 @@ export class ChatComponent implements OnInit {
 		this.configuration.deployment = environment.deployment;
 		this.configuration.documentThreshold = environment.document_threshold;
 		this.displayToBottom = false;
+		this.displayPromptFlow = false;
 		this.displaySettings = false;
 		this.displaySettingsModel = false;
 		this.fileUpload.nativeElement.value = '';
@@ -138,6 +184,8 @@ export class ChatComponent implements OnInit {
 		this.messagesContext = [];
 		this.messagesDocuments = [];
 		this.performThresholdSearch = false;
+		this.prompt = '';
+		this.promptFlow = '';
 		this.selectedFiles = [];
 		this.summaryCount = 1;
 		this.stopGeneration = false;
@@ -161,6 +209,9 @@ export class ChatComponent implements OnInit {
 		const files = Array.from(event.target.files) as File[];
 
 		this.selectedFiles = [...this.selectedFiles, ...files];
+
+		this.displayPromptFlow = false;
+		this.promptFlow = '';
 	}
 
 	onDocumentsClick(event: any) {
@@ -236,6 +287,23 @@ export class ChatComponent implements OnInit {
 		this.displaySettingsModel = false;
 	}
 
+	onPromptCreate(prompt: string, flow: string | null = null) {
+		this.prompt = prompt;
+
+		if (flow !== null && flow.length > 0) {
+			this.promptFlow = flow;
+			this.displayPromptFlow = true;
+		} else {
+			this.onSend();
+		}
+	}
+
+	onPrommptCancel() {
+		this.prompt = '';
+		this.promptFlow = '';
+		this.displayPromptFlow = false;
+	}
+
 	async onSend() {
 		if (this.prompt.replace(/\s/g, '').length === 0) {
 			return;
@@ -251,6 +319,8 @@ export class ChatComponent implements OnInit {
 		this.reduceMessageContext();
 
 		this.prompt = '';
+		this.promptFlow = '';
+		this.displayPromptFlow = false;
 		this.selectedFiles = [];
 		this.fileUpload.nativeElement.value = '';
 	}
