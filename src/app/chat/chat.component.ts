@@ -48,6 +48,12 @@ export class ChatComponent implements OnInit {
 	displayPromptFlow = false;
 	displaySettings = false;
 	displaySettingsModel = false;
+	examplePrompts = new Array<{
+		prompt: string,
+		flow: string | null,
+		icon: IconDefinition,
+		colour: string
+	}>();
 	iconCheckmark = faCheck;
 	iconClose = faClose;
 	iconDelete = faTrashAlt;
@@ -94,6 +100,8 @@ export class ChatComponent implements OnInit {
 			websiteServerlessEndpoint: environment.website_serverless_endpoint,
 			wordServerlessEndpoint: environment.word_serverless_endpoint
 		};
+
+		this.examplePrompts = this.getExamplePrompts();
 	}
 
 	@HostListener('window:scroll', ['$event'])
@@ -120,25 +128,29 @@ export class ChatComponent implements OnInit {
 		const examples = new Array<{
 			prompt: '',
 			flow: string | null,
-			icon: IconDefinition
+			icon: IconDefinition,
+			color: ''
 		}>();
 
 		examples.push({
 			prompt: 'Provide an explanation for the concepts that make up the SOLID principle in programming. I\'m curious since I\'m learning to code.',
 			flow: null,
-			icon: this.iconSchool
+			icon: this.iconSchool,
+			colour: this.getRandomColor()
 		} as any);
 
 		examples.push({
 			prompt: 'Summarize the key details of a court case; include the parties involved, the court and jurisdiction, the main issues, facts, and decision.',
 			flow: 'Before continuing, please attach the document(s) for summarization.',
-			icon: this.iconLegal
+			icon: this.iconLegal,
+			colour: this.getRandomColor()
 		} as any);
 
 		examples.push({
 			prompt: 'I found this interesting website that might be useful. I would love to send my team a summary. Please help with drafting the email. ',
 			flow: 'Before continuing provide the URL(s) for any site you are interested in.',
-			icon: this.iconWebsite
+			icon: this.iconWebsite,
+			colour: this.getRandomColor()
 		} as any);
 
 		return examples;
