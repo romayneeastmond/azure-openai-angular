@@ -98,6 +98,10 @@ This sliding context window allows vectorized search results, user messages, and
 
 The application passes the entire conversation messages to an [Azure Python Serverless Function](https://github.com/romayneeastmond/azure-python-serverless-functions) endpoint that returns it as a Word document. This button is located at the top left and only availalbe after at least one message response and not during a loading state. Uses the conversation title as the file name.
 
+## Export Any Markdown Response to Clipboard
+
+Any response that contains a markdown object, can be copied to the clipboard. In most cases, the resulting code can be downloaded as its native file format. For example, asking the model how to say 'Hello World' in Go, should produce text that can be downloaded to a output.go file. If the language cannot be detected, then markdown is saved using the .txt extension.
+
 ## Copyright and Ownership
 
 All terms used are copyright to their original authors.

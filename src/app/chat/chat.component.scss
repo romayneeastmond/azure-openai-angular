@@ -54,7 +54,7 @@
     bottom: 10px;
     position: fixed;
     right: calc(100% - 310px);
-    z-index: 3;
+    z-index: 6;
 }
 
 .down-arrow-position {
@@ -159,12 +159,15 @@
 }
 
 .footer {
+    background-color: #fff;
     color: #7d7d7d;
-    bottom: 10px;
+    bottom: -10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     position: fixed;
     text-align: center;
     width: calc(100% - 293px);
-    z-index: 3;
+    z-index: 4;
 }
 
 .form-control,
@@ -232,8 +235,71 @@ markdown {
         margin-top: 1rem !important;
     }
 
+    p:has(span.language-selector) {
+        background-color: #2f2f2f;
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+        color: #b4b4b4;
+        margin: 0 !important;
+        margin-bottom: -45px !important;
+        margin-top: 1rem !important;
+        padding-left: 16px;
+        padding-bottom: 5px;
+        position: relative;
+        z-index: 2;
+
+        > span {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+        }
+
+        span {
+            font-size: 0.75rem;
+            line-height: 1rem;
+
+            > span {
+                &.copy,
+                &.download {
+                    cursor: pointer;
+                    position: absolute;
+                    right: 16px;
+                    transition: color 0.5s ease-in-out;
+
+                    &:hover {
+                        color: #fff;
+                    }
+                }
+
+                &.download {
+                    right: 64px;
+                }
+            }
+        }
+    }
+
     pre {
         white-space: break-spaces;
+        margin-top: 1rem;
+        position: relative;
+
+        &::after {
+            content: " ";
+            position: absolute;
+            background-color: #2f2f2f;
+            border-top-left-radius: 0.375rem;
+            border-top-right-radius: 0.375rem;
+            color: #b4b4b4;
+            left: 0;
+            margin: 0 !important;
+            margin-bottom: -29px !important;
+            padding-left: 16px;
+            padding-bottom: 5px;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1;
+        }
     }
 
     table {
@@ -351,7 +417,7 @@ pre code {
     bottom: 10px;
     position: fixed;
     right: 45px;
-    z-index: 3;
+    z-index: 6;
 }
 
 span.timestamp {
@@ -378,7 +444,7 @@ span.timestamp-system {
     position: fixed;
     resize: none;
     width: calc(100% - 293px);
-    z-index: 2;
+    z-index: 5;
 
     &:focus {
         border-color: #8fbaf9 !important;
@@ -406,13 +472,13 @@ span.timestamp-system {
     position: relative;
 
     &::after {
-        bottom: 0;
         content: " ";
         position: fixed;
         background-color: #fff;
         height: 60px;
         left: 236px;
         width: 100%;
+        z-index: 3;
     }
 }
 
@@ -591,6 +657,10 @@ span.timestamp-system {
                 background-color: #5c636a;
             }
         }
+    }
+
+    .footer {
+        background-color: #212121;
     }
 
     .left-column,
