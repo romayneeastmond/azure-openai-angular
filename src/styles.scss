@@ -17,6 +17,27 @@ body {
     &::-webkit-scrollbar-thumb:hover {
         background: rgba(244, 244, 244, 1);
     }
+
+    &.dialog-opened {
+        padding-right: 10px;
+        overflow: hidden;
+
+        .send-button {
+            right: 55px;
+        }
+
+        .textarea,
+        .footer {
+            width: calc(100% - 303px);
+        }
+
+        @media (max-width: 767px) {
+            .textarea,
+            .footer {
+                width: calc(100% - 65px);
+            }
+        }
+    }
 }
 
 a {

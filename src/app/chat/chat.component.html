@@ -54,7 +54,7 @@
 
             <div class="d-flex flex-column vh-100">
                 <div class="flex-grow-1 p-3">
-                    <markdown [data]="messages"></markdown>
+                    <markdown emoji [data]="messages"></markdown>
 
                     @if (messages.length === 0 && prompt.length === 0)
                     {
@@ -115,10 +115,20 @@
 
                     @if (displayPromptFlow === true )
                     {
-                    <div class="documents-wrapper">
+                    <div class="documents-wrapper d-print-none">
                         <div class="flow">
                             {{promptFlow}}
-                            <span (click)="onPrommptCancel()"><fa-icon [icon]="iconClose"></fa-icon> Cancel Prompt</span>
+                            <span (click)="onPromptCancel()"><fa-icon [icon]="iconClose"></fa-icon> Cancel Prompt</span>
+                        </div>
+                    </div>
+                    }
+
+                    @if (getAdvancedOptions() && (!selectedFiles || (selectedFiles && selectedFiles.length === 0)))
+                    {
+                    <div class="documents-wrapper d-print-none">
+                        <div class="flow">
+                            At least one document attached to this conversation can be further refined.
+                            <span (click)="onSettingsAdvanced()"><fa-icon [icon]="iconSettings"></fa-icon> Open Advanced Options</span>
                         </div>
                     </div>
                     }
@@ -154,3 +164,51 @@
 <div class="left-column-panel d-print-none">
     &nbsp;
 </div>
+
+<dialog class="box-shadow d-print-none" #advancedOptionsDialog>
+    <div class="container h-100">
+        <div class="row h-100">
+            <div class="col position-relative h-100 scrollable">
+                <h6 class="mb-3 mt-2 small">Advanced Options</h6>
+
+                <p class="small">
+                    Refine conversational context by selecting the page numbers to be used for generating responses.
+                    Adding too many pages per document can potentially affect token limits. Make adjustments as needed,
+                    until responses are more inclusive.
+                </p>
+
+                @for (document of getAdvancedMessageDocuments(); track messagesDocuments; let i = $index) {
+                <div class="mb-3 small">
+                    <label>{{document.filename}}</label>
+                    <div class="small mb-3">Contains {{document.statistics}}. Select pages below.</div>
+                    <input type="text" class="form-control" placeholder="e.g. 1-5, 8, 11-13" [(ngModel)]="document.filter">
+                </div>
+                }
+
+                <div class="close">
+                    <button class="btn btn-sm btn-secondary" (click)="onSettingsAdvancedSave()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<dialog class="box-shadow smaller d-print-none" #saveOutputDialog>
+    <div class="container h-100">
+        <div class="row h-100">
+            <div class="col position-relative h-100 scrollable">
+                <h6 class="mb-3 mt-2 small">Save Output As</h6>
+
+                <div class="mb-3 small">
+                    <label>File Name and Extension</label>
+                    <div class="small mb-3">Automatically infers extension from markdown.</div>
+                    <input type="text" class="form-control" placeholder="filename.extension" [(ngModel)]="outputFilename">
+                </div>
+
+                <div class="close">
+                    <button class="btn btn-sm btn-secondary" (click)="onOutputFilenameSave()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>

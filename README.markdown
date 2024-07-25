@@ -82,6 +82,10 @@ The application also has the feature that enables live internet capabilities for
 
 Accepts document uploads in PDF, Word, text, and markdown formats. Uses the document_threshold and threshold environment variables to determine how much of the document to initially load into the conversation's context window. The entire document content is vectorized with the associated prompt, which allows for vectorized searches to return sementatic content into the conversation's context.
 
+## Add Document Filters to Conversation Context
+
+Gives the ability to specify exactly what pages should be added to document context. Ignores document_treshold and threshold environment variables. Furthermore, it allows the filtered sections of the document to be vectorized to return additional semantic content. Got inspiration from print dialogue select ranges, e.g. 1-5, 8, 11-13.
+
 ## Instant Interrogation of Documents
 
 Allows for instantaneous interrogation of documents regardless of size or the provided format. This is achieved by integration with two [Azure Python Serverless Functions](https://github.com/romayneeastmond/azure-python-serverless-functions). One responsible for the document load and the other for finding cosine similarities results.
@@ -98,9 +102,9 @@ This sliding context window allows vectorized search results, user messages, and
 
 The application passes the entire conversation messages to an [Azure Python Serverless Function](https://github.com/romayneeastmond/azure-python-serverless-functions) endpoint that returns it as a Word document. This button is located at the top left and only availalbe after at least one message response and not during a loading state. Uses the conversation title as the file name.
 
-## Export Any Markdown Response to Clipboard
+## Download Markdown by Extending ngx-markdown
 
-Any response that contains a markdown object, can be copied to the clipboard. In most cases, the resulting code can be downloaded as its native file format. For example, asking the model how to say 'Hello World' in Go, should produce text that can be downloaded to a output.go file. If the language cannot be detected, then markdown is saved using the .txt extension.
+Any response that contains a markdown object, can be copied to the clipboard. In most cases, the resulting code can be downloaded as its native file format. For example, asking the model how to say 'Hello World' in Go, should produce text that can be downloaded to a output.go file. If the language cannot be detected, then markdown is saved using the .markdown extension.
 
 ## Copyright and Ownership
 

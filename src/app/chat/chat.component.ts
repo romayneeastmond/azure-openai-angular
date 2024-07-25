@@ -30,8 +30,11 @@ import {
     encapsulation: ViewEncapsulation.None
 })
 export class ChatComponent implements OnInit {
+    @ViewChild('advancedOptionsDialog') advancedOptionsDialog!: ElementRef;
     @ViewChild('fileUpload') fileUpload!: ElementRef;
+    @ViewChild('saveOutputDialog') saveOutputDialog!: ElementRef;
     @ViewChild('textareaChat') textareaChat!: ElementRef;
+
 
     cancelGeneration = false;
     codeblocks = new Array<string>();
@@ -74,8 +77,6 @@ export class ChatComponent implements OnInit {
     iconWord = faFileWord;
     isDarkMode = false;
     loading = false;
-    prompt = '';
-    promptFlow = '';
     messages = '';
     messagesContext = new Array<{
         role: '',
@@ -84,8 +85,14 @@ export class ChatComponent implements OnInit {
     messagesDocuments = new Array<{
         filename: '',
         content: '',
-        pages: []
+        pages: [],
+        filter: '',
+        statistics: ''
     }>();
+    outputCode = '';
+    outputFilename = '';
+    prompt = '';
+    promptFlow = '';
     performThresholdSearch = false;
     selectedFiles: File[] = [];
     stopGeneration = false;
@@ -142,10 +149,21 @@ export class ChatComponent implements OnInit {
                 code = code.slice(indexLanguageExtension[1].length + 1);
             }
 
-            await this.onExportMarkdown(code, indexLanguageExtension[2]);
+            this.outputCode = code;
+            this.outputFilename = `output.${indexLanguageExtension[2]}`;
+            this.onOutputFilename();
 
             return;
         }
+    }
+
+    @HostListener('document:keydown.escape', ['$event'])
+    handleEscape(event: KeyboardEvent) {
+        if (!event) {
+            return;
+        }
+
+        document.body.classList.remove('dialog-opened');
     }
 
     @HostListener('window:scroll', ['$event'])
@@ -166,6 +184,53 @@ export class ChatComponent implements OnInit {
         if ((scrollPosition - 120) > +element.offsetHeight) {
             this.displayToBottom = false;
         }
+    }
+
+    getAdvancedMessageDocuments(): any[] {
+        return this.messagesDocuments.filter(x => x.pages.length > 0);
+    }
+
+    getAdvancedOptions(): boolean {
+        return this.messagesDocuments && this.messagesDocuments.filter(x => x.pages.length).length > 0
+    }
+
+    getArrayElements(ranges: string, elementsArray: any[]): any[] {
+        const parts = ranges.split(/[,;]/);
+
+        let results: any[] = [];
+
+        parts.forEach(x => {
+            x = x.trim();
+
+            if (x.includes('-')) {
+                let [start, end] = x.replaceAll(' ', '').split('-').map(num => parseInt(num, 10) - 1);
+
+                if (!isNaN(start) && !isNaN(end)) {
+                    if (start > end) {
+                        const temp = start;
+                        end = start;
+                        start = temp;
+                    }
+
+                    if (end > elementsArray.length) {
+                        end = elementsArray.length
+                    }
+
+                    for (let i = start; i <= end; i++) {
+                        if (elementsArray[i] !== undefined) {
+                            results.push(elementsArray[i]);
+                        }
+                    }
+                }
+            } else {
+                const index = parseInt(x, 10) - 1;
+                if (!isNaN(index) && elementsArray[index] !== undefined) {
+                    results.push(elementsArray[index]);
+                }
+            }
+        });
+
+        return results;
     }
 
     getExamplePrompts(): any[] {
@@ -293,6 +358,8 @@ export class ChatComponent implements OnInit {
         this.messages = '';
         this.messagesContext = [];
         this.messagesDocuments = [];
+        this.outputCode = '';
+        this.outputFilename = '';
         this.performThresholdSearch = false;
         this.prompt = '';
         this.promptFlow = '';
@@ -387,7 +454,7 @@ export class ChatComponent implements OnInit {
         URL.revokeObjectURL(url);
     }
 
-    async onExportMarkdown(content: string, extension: string) {
+    async onExportMarkdown(content: string) {
         const response = await fetch(this.configuration.exportServerlessEndpoint, {
             method: "POST",
             body: JSON.stringify({
@@ -419,7 +486,7 @@ export class ChatComponent implements OnInit {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `output.${extension}`;
+        a.download = this.outputFilename;
 
         document.body.appendChild(a);
         a.click();
@@ -439,6 +506,22 @@ export class ChatComponent implements OnInit {
         this.displaySettingsModel = false;
     }
 
+    onOutputFilename() {
+        document.body.classList.add('dialog-opened');
+        this.saveOutputDialog.nativeElement.showModal();
+    }
+
+    async onOutputFilenameSave() {
+        document.body.classList.remove('dialog-opened');
+        this.saveOutputDialog.nativeElement.close();
+
+        if (this.outputFilename.trim().length === 0) {
+            return;
+        }
+
+        await this.onExportMarkdown(this.outputCode);
+    }
+
     onPromptCreate(prompt: string, flow: string | null = null) {
         this.prompt = prompt;
 
@@ -450,7 +533,7 @@ export class ChatComponent implements OnInit {
         }
     }
 
-    onPrommptCancel() {
+    onPromptCancel() {
         this.prompt = '';
         this.promptFlow = '';
         this.displayPromptFlow = false;
@@ -461,7 +544,15 @@ export class ChatComponent implements OnInit {
             return;
         }
 
-        this.messages += `<div class="d-flex align-items-end flex-column"><div class="message-prompt mb-4 p-3 position-relative">${this.prompt}<span class="timestamp mt-4">${this.getTimestamp()}</span></div></div>`;
+        let filteredTimestamp = '';
+
+        if (this.performThresholdSearch && this.messagesDocuments.length > 0) {
+            if (this.messagesDocuments.filter(x => x.filter.length).length > 0) {
+                filteredTimestamp = 'This prompt is currently using document filters.<br />';
+            }
+        }
+
+        this.messages += `<div class="d-flex align-items-end flex-column"><div class="message-prompt mb-4 p-3 position-relative">${this.prompt}<span class="timestamp mt-4">${filteredTimestamp}${this.getTimestamp()}</span></div></div>`;
 
         this.scrollToBottom();
 
@@ -497,6 +588,16 @@ export class ChatComponent implements OnInit {
             this.titleTemporary = '';
             this.onSettingsCancel();
         }
+    }
+
+    onSettingsAdvanced() {
+        document.body.classList.add('dialog-opened');
+        this.advancedOptionsDialog.nativeElement.showModal();
+    }
+
+    onSettingsAdvancedSave() {
+        document.body.classList.remove('dialog-opened');
+        this.advancedOptionsDialog.nativeElement.close();
     }
 
     onToggleTheme() {
@@ -617,9 +718,13 @@ export class ChatComponent implements OnInit {
                         if ((x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) || this.configuration.documentThreshold == 0) {
                             this.performThresholdSearch = true;
 
-                            this.messagesDocuments.push({ filename: x.filename, content, pages: x.pages } as any);
+                            this.messagesDocuments.push({ filename: x.filename, content, pages: x.pages, filter: '', statistics: `contains ${(+x.statistics.words).toLocaleString('en-US')} on ${x.statistics.pages} page(s)` } as any);
 
-                            content = this.getFirstWordsByLength(content, 10000);
+                            if (+this.configuration.documentThreshold !== 0) {
+                                content = this.getFirstWordsByLength(content, +this.configuration.documentThreshold);
+                            } else {
+                                content = '';
+                            }
 
                             documentsAboveThreshold += `${x.filename} contains ${(+x.statistics.words).toLocaleString('en-US')} words${x.statistics.pages && x.statistics.pages !== -1 ? ` across ${(+x.statistics.pages).toLocaleString('en-US')} pages` : ''}, `;
                         }
@@ -670,11 +775,24 @@ export class ChatComponent implements OnInit {
             try {
                 this.loading = true;
 
+                let documentContent = this.messagesDocuments[i].content as string;
+
+                if (this.messagesDocuments[i].filter.length > 0) {
+                    const refinedContentElements = this.getArrayElements(this.messagesDocuments[i].filter, this.messagesDocuments[i].pages);
+                    const refinedContent = refinedContentElements.join(' ');
+
+                    if (refinedContent.trim().length > 0) {
+                        documentContent = refinedContent;
+
+                        this.messagesContext.push({ role: 'user', content: `The document "${this.messagesDocuments[i].filename}" has additional content. The content is: ${documentContent}` } as any);
+                    }
+                }
+
                 const response = await fetch(this.configuration.documentSearchEndpoint, {
                     method: "POST",
                     body: JSON.stringify({
                         "query": prompt,
-                        "content": this.messagesDocuments[i].content
+                        "content": documentContent
                     } as any),
                     headers: {
                         "Accept": "*/*"
