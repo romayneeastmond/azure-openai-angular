@@ -27,4 +27,14 @@ describe('ChatComponent', () => {
         expect(welcomeHeader).toBeTruthy();
         expect(welcomeHeader.textContent).toContain('Streaming Demonstration using Azure OpenAI and Angular 18');
     });
+
+    it('should have prompt textarea, document button, and send button', () => {
+        const buttonDocumentElement = fixture.debugElement.query(By.css('.document-button')).nativeElement;
+        const buttonSendElement = fixture.debugElement.query(By.css('.send-button')).nativeElement;
+        const promptTextareaElement = fixture.debugElement.query(By.css('.textarea')).nativeElement;
+
+        expect(buttonDocumentElement).toBeTruthy();
+        expect(buttonSendElement).toBeTruthy();
+        expect(promptTextareaElement).toBeTruthy();
+    });
 });
