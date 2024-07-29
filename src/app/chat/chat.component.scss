@@ -62,8 +62,8 @@ dialog {
 
     div.close {
         bottom: 0;
-        position: absolute;
-        right: 25px;
+        position: stick;
+        text-align: right;
     }
 
     div.scrollable {
@@ -103,11 +103,7 @@ dialog {
 
     &.smaller {
         width: clamp(200px, 480px, 100%);
-        height: 200px;
-
-        div.close {
-            right: 0;
-        }
+        height: 225px;
 
         input[type="text"] {
             max-width: 275px;

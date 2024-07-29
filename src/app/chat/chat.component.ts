@@ -411,8 +411,9 @@ export class ChatComponent implements OnInit {
     async onExportConversation() {
         const regexTimestamps = /<span class="[^>]*timestamp[^>]*">.*?<\/span>/g;
         const regexLanguages = /<span class="[^>]*language-selector[^>]*">.*?<\/span>/g;
+        const regexDownload = /<span class="[^>]*download code-download[^>]*">.*?<\/span>/g;
 
-        const content = this.messages.replace(regexTimestamps, '').replace(regexLanguages, '');
+        const content = this.messages.replace(regexTimestamps, '').replace(regexLanguages, '').replace(regexDownload, '');
 
         const response = await fetch(this.configuration.wordServerlessEndpoint, {
             method: "POST",
@@ -718,7 +719,7 @@ export class ChatComponent implements OnInit {
                         if ((x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) || this.configuration.documentThreshold == 0) {
                             this.performThresholdSearch = true;
 
-                            this.messagesDocuments.push({ filename: x.filename, content, pages: x.pages, filter: '', statistics: `contains ${(+x.statistics.words).toLocaleString('en-US')} on ${x.statistics.pages} page(s)` } as any);
+                            this.messagesDocuments.push({ filename: x.filename, content, pages: x.pages, filter: '', statistics: `Contains ${(+x.statistics.words).toLocaleString('en-US')} on ${x.statistics.pages} page(s)` } as any);
 
                             if (+this.configuration.documentThreshold !== 0) {
                                 content = this.getFirstWordsByLength(content, +this.configuration.documentThreshold);

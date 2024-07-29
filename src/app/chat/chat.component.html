@@ -180,7 +180,7 @@
                 @for (document of getAdvancedMessageDocuments(); track messagesDocuments; let i = $index) {
                 <div class="mb-3 small">
                     <label>{{document.filename}}</label>
-                    <div class="small mb-3">Contains {{document.statistics}}. Select pages below.</div>
+                    <div class="small mb-3">{{document.statistics}}. Select pages below.</div>
                     <input type="text" class="form-control" placeholder="e.g. 1-5, 8, 11-13" [(ngModel)]="document.filter">
                 </div>
                 }
