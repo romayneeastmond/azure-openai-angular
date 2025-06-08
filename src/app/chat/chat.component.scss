@@ -4,12 +4,25 @@
         color 0.4s ease-in-out;
 }
 
+.button-database {
+    left: 90px !important;
+}
+
 .button-delete-messages {
     left: 50px !important;
 }
 
 .button-export-conversation {
-    left: 90px !important;
+    left: 130px !important;
+}
+
+.button-new-conversation {
+    margin-left: -6px;
+}
+
+.button-new-conversation-wrapper {
+    position: fixed;
+    top: 10px;
 }
 
 .button-settings {
@@ -17,6 +30,28 @@
     border: 0;
     color: #ccc !important;
     margin-top: -5px;
+
+    &:active,
+    &:hover {
+        background-color: transparent !important;
+    }
+
+    &:hover {
+        fa-icon {
+            transform: rotate(180deg);
+        }
+    }
+
+    fa-icon {
+        display: inline-block;
+        transition: transform 0.5s ease-in-out;
+    }
+}
+
+.button-settings-new-conversation {
+    background-color: transparent;
+    border: 0;
+    color: #ccc !important;
 
     &:active,
     &:hover {
@@ -60,9 +95,21 @@ dialog {
         width: 100vw;
     }
 
+    .close-dialogue {
+        background-color: white;
+        border-radius: 0.25rem;
+        color: #6c757d;
+        cursor: pointer;
+        font-size: 0.875em;
+        padding: 5px;
+        position: absolute;
+        right: 40px;
+        z-index: 2;
+    }
+
     div.close {
         bottom: 0;
-        position: stick;
+        position: sticky;
         text-align: right;
     }
 
@@ -93,6 +140,30 @@ dialog {
 
     label {
         font-weight: bold;
+    }
+
+    .listing {
+        border-bottom: 1px solid #dee2e6;
+        font-size: 0.8em;
+        height: 20px;
+        overflow: hidden;
+
+        button {
+            font-size: 0.75rem;
+        }
+    }
+
+    &.largest {
+        height: 99vh;
+        width: 99vw;
+
+        textarea {
+            height: 300px;
+        }
+    }
+
+    .mw {
+        max-width: 100% !important;
     }
 
     .small {

@@ -1,7 +1,10 @@
 <div class="container-fluid h-100">
     <div class="row hv-100">
         <div class="col-3 left-column p-3 d-none d-lg-block d-md-block d-print-none">
-
+            <div class="mt-5 button-new-conversation-wrapper">
+                <button class="btn btn-sm btn-secondary button-new-conversation float-start" (click)="onDeleteMessages()" [attr.disabled]="loading ? true : null">Start New Conversation</button>
+                <button class="btn btn-sm btn-secondary button-settings-new-conversation float-end ms-1" (click)="onNewConversationSettings()"><fa-icon [icon]="iconSettings"></fa-icon></button>
+            </div>
         </div>
         <div class="col right-column" (click)="onModelSettingsClose()">
             @if (configuration.deployments.length > 0) {
@@ -155,6 +158,10 @@
     <fa-icon [icon]="iconDelete"></fa-icon>
 </button>
 
+<button class="btn btn-sm btn-secondary d-print-none toggle-theme button-database" (click)="onDatabase()" [attr.disabled]="loading ? true : null" [attr.disabled]="messagesDocuments.length === 0">
+    <fa-icon [icon]="iconDatabase"></fa-icon>
+</button>
+
 @if (this.messages.length > 0 && this.title.length > 0) {
 <button class="btn btn-sm btn-secondary d-print-none toggle-theme button-export-conversation" (click)="onExportConversation()" [attr.disabled]="loading ? true : null">
     <fa-icon [icon]="iconWord"></fa-icon>
@@ -208,6 +215,109 @@
                 <div class="close">
                     <button class="btn btn-sm btn-secondary" (click)="onOutputFilenameSave()">Save</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<dialog class="box-shadow largest d-print-none" #databaseOutputDialog>
+    <div class="container-fluid h-100">
+        <span class="close-dialogue" (click)="onDatabaseClose()"><fa-icon [icon]="iconClose"></fa-icon> Close</span>
+
+        <div class="row h-100 scrollable position-relative">
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 position-relative">
+                <h6 class="mb-3 mt-2 small">Clauses Database</h6>
+
+                <div class="mb-3 small">
+                    <label>Select Pre-Loaded Database</label>
+
+                    <select #databaseSelect class="form-select" (change)="onDatabaseChange(databaseSelect.value)">
+                        <option value=""></option>
+                        <option value="database-openai-employees.csv">Company Employees Listing</option>
+                        <option value="database-kaggle-contracts.csv">Legal Contract Clauses</option>
+                        <option value="database-kaggle-websites.csv">Website Classification Descriptions</option>
+                    </select>
+                    <div class="small mb-3">Use a Pre-Loaded Database or Manually Enter Below</div>
+                </div>
+
+                <div class="mb-3 small">
+                    <textarea class="form-control" placeholder="Manually Enter Clauses." (keyup)="onDatabaseChange('manually')" (blur)="onDatabaseChange('manually')" [(ngModel)]="clauses"></textarea>
+                </div>
+
+                <div class="mb-3 text-end">
+                    <button class="btn btn-sm btn-secondary" (click)="onDatabaseSearch()">Search</button>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 position-relative">
+                @if (clauseHeading) {
+                <div class="mb-3 mt-5">
+                    <h6 class="small">
+                        {{clauseHeading}}
+                    </h6>
+                </div>
+                }
+
+                @for (clause of contractClauses; track clause; let i = $index) {
+                <div class="mb-3 pb-5 listing">
+                    {{i+1}}. {{clause}}
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<dialog class="box-shadow largest d-print-none" #conversationSettingsOutputDialog>
+    <div class="container-fluid h-100">
+        <span class="close-dialogue" (click)="onNewConversationSettingsClose()"><fa-icon [icon]="iconClose"></fa-icon> Close</span>
+
+        <div class="row h-100 scrollable position-relative">
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 position-relative">
+                <h6 class="mb-3 mt-2 small">New Conversation Persona Settings</h6>
+
+                <div class="mb-3 small">
+                    <label>Persona Name</label>
+                    <input type="text" class="form-control mw" placeholder="Name" [(ngModel)]="persona.name">
+                </div>
+
+                <div class="mb-3 small">
+                    <label>Prompt</label>
+
+                    <textarea class="form-control" placeholder="Instructions Used to Create Persona." [(ngModel)]="persona.prompt"></textarea>
+                </div>
+
+                <div class="mb-3 small">
+                    <label>Multi-Step Instruction</label>
+                    <input type="text" class="form-control mw" placeholder="Optional Instruction" [(ngModel)]="persona.instruction">
+                </div>
+
+                <div class="mb-3 text-end">
+                    <button class="btn btn-sm btn-secondary" (click)="onNewConversationSettingsSave()">Save</button>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 position-relative">
+                @if (personas.length > 0) {
+                <div class="mb-3 mt-5">
+                    <h6 class="small">
+                        Saved Personas
+                    </h6>
+                </div>
+                }
+
+
+                @for (persona of personas; track persona; let i = $index) {
+                <div class="mb-3 pb-5 listing">
+                    <div class="float-start">
+                        <a href="/" (click)="onNewConversationSettingsStart($event, persona.id)">{{i+1}}. {{persona.name}}</a>
+                    </div>
+                    <div class="float-end text-right">
+                        <div class="small">
+                            <button class="btn btn-sm btn-danger me-2" (click)="onNewConversationSettingsDelete(persona.id)"><fa-icon [icon]="iconDelete"></fa-icon></button>
+                            <button class="btn btn-sm btn-secondary" (click)="onNewConversationSettingsEdit(persona.id)"><fa-icon [icon]="iconEdit"></fa-icon></button>
+                        </div>
+                    </div>
+                </div>
+                }
             </div>
         </div>
     </div>

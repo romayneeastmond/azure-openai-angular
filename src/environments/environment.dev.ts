@@ -9,6 +9,7 @@ export const environment = {
         description: '',
         threshold: 10000
     }],
+    document_clauses_endpoint: '',
     document_serverless_endpoint: '',
     document_search_endpoint: '',
     document_threshold: 10000,

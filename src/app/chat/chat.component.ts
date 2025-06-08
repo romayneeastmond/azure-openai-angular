@@ -5,12 +5,14 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown'
 import { ClipboardModule, ClipboardService } from 'ngx-clipboard';
+import { v4 as uuidv4 } from 'uuid';
 import { environment } from '../../environments/environment';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 import {
-    IconDefinition, faAngleDown, faArrowDown, faCheck, faClose, faCog, faFileWord, faGavel, faGlobe, faGraduationCap, faMoon,
-    faPaperclip, faStop, faTrashAlt
+    IconDefinition, faAngleDown, faArrowDown, faCheck, faClose, faCog, faDatabase, faE, faEdit, faFileWord, faGavel, faGlobe,
+    faGraduationCap, faMoon, faPaperclip, faStop, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons';
+import { ClausesService } from '../services/clauses.service';
 
 @Component({
     selector: 'app-chat',
@@ -31,20 +33,26 @@ import {
 })
 export class ChatComponent implements OnInit {
     @ViewChild('advancedOptionsDialog') advancedOptionsDialog!: ElementRef;
+    @ViewChild('conversationSettingsOutputDialog') conversationSettingsOutputDialog!: ElementRef;
+    @ViewChild('databaseOutputDialog') databaseOutputDialog!: ElementRef;
+    @ViewChild('databaseSelect') databaseSelect!: ElementRef;
     @ViewChild('fileUpload') fileUpload!: ElementRef;
     @ViewChild('saveOutputDialog') saveOutputDialog!: ElementRef;
     @ViewChild('textareaChat') textareaChat!: ElementRef;
 
-
     cancelGeneration = false;
+    clauses = '';
+    clauseHeading = '';
     codeblocks = new Array<string>();
     codeblocksCounter = 0;
+    contractClauses: string[] = [];
     configuration = {
         apiKey: '',
         apiVersion: '',
         azureEndpoint: '',
         deployment: '',
         deployments: [{ name: '', description: '', threshold: '' }],
+        documentClausesEndpoint: '',
         documentServerlessEndpoint: '',
         documentSearchEndpoint: '',
         documentThreshold: 0,
@@ -64,10 +72,12 @@ export class ChatComponent implements OnInit {
     }>();
     iconCheckmark = faCheck;
     iconClose = faClose;
+    iconDatabase = faDatabase;
     iconDelete = faTrashAlt;
     iconDocument = faPaperclip;
     iconDown = faArrowDown;
     iconDropdown = faAngleDown;
+    iconEdit = faEdit;
     iconLegal = faGavel;
     iconMoon = faMoon;
     iconSchool = faGraduationCap;
@@ -91,6 +101,13 @@ export class ChatComponent implements OnInit {
     }>();
     outputCode = '';
     outputFilename = '';
+    persona = {
+        id: '',
+        name: '',
+        prompt: '',
+        instruction: ''
+    };
+    personas = new Array<any>();
     prompt = '';
     promptFlow = '';
     performThresholdSearch = false;
@@ -100,17 +117,19 @@ export class ChatComponent implements OnInit {
     title = '';
     titleTemporary = '';
 
-    constructor(private clipboardService: ClipboardService) {
+    constructor(
+        private clausesService: ClausesService,
+        private clipboardService: ClipboardService
+    ) { }
 
-    }
-
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
         this.configuration = {
             apiKey: environment.api_key,
             apiVersion: environment.api_version,
             azureEndpoint: environment.azure_endpoint,
             deployment: environment.deployment,
             deployments: environment.deployments as [any],
+            documentClausesEndpoint: environment.document_clauses_endpoint,
             documentServerlessEndpoint: environment.document_serverless_endpoint,
             documentSearchEndpoint: environment.document_search_endpoint,
             documentThreshold: environment.document_threshold,
@@ -273,6 +292,26 @@ export class ChatComponent implements OnInit {
         return firstWords.join(" ");
     }
 
+
+    getPersonas(): Array<any> {
+        const personas = localStorage.getItem('AzureOpenAIDemo_Personas');
+
+        if (personas) {
+            const data = JSON.parse(personas) as Array<{
+                id: number,
+                name: string,
+                prompt: string,
+                instruction: string
+            }>;
+
+            console.log(personas);
+
+            return data;
+        }
+
+        return [];
+    }
+
     getRandomColor(): string {
         const colours = ["#ED6262", "#E2C541", "#76D0EB", "#CB8BD0"];
 
@@ -346,6 +385,9 @@ export class ChatComponent implements OnInit {
 
     onDeleteMessages() {
         this.cancelGeneration = false;
+        this.clauses = '';
+        this.clauseHeading = '';
+        this.contractClauses = [];
         this.codeblocks = [];
         this.codeblocksCounter = 0;
         this.configuration.deployment = environment.deployment;
@@ -361,6 +403,13 @@ export class ChatComponent implements OnInit {
         this.outputCode = '';
         this.outputFilename = '';
         this.performThresholdSearch = false;
+        this.persona = {
+            id: uuidv4().toString(),
+            name: '',
+            prompt: '',
+            instruction: ''
+        };
+        this.personas = [];
         this.prompt = '';
         this.promptFlow = '';
         this.selectedFiles = [];
@@ -369,6 +418,177 @@ export class ChatComponent implements OnInit {
         this.textareaChat.nativeElement.focus();
         this.title = '';
         this.titleTemporary = '';
+    }
+
+    async onDatabase() {
+        document.body.classList.add('dialog-opened');
+        this.databaseOutputDialog.nativeElement.showModal();
+    }
+
+    async onDatabaseChange(event: any) {
+        if (event === 'manually') {
+            if (this.clauses.trim().length > 0) {
+                this.databaseSelect.nativeElement.value = '';
+                this.contractClauses = [];
+                this.clauseHeading = '';
+            }
+
+            return;
+        }
+
+        if (event === 'database-kaggle-contracts.csv') {
+            this.clauses = '';
+
+            const records = this.clausesService.getClausesContracts().split('\n');
+
+            this.contractClauses = [];
+            this.clauseHeading = `Loaded ${records.length - 1} record(s) from database. Showing 100.`;
+
+            for (let i = 0; i < records.length; i++) {
+                if (i == 0)
+                    continue;
+
+                const values = records[i].split(',contracts');
+
+                if (values[0].replace('Contracts. ', '').trim().length > 0)
+                    this.contractClauses.push(values[0].replace('Contracts. ', '').replaceAll('""', '"').trim());
+
+                if (i === 100)
+                    break;
+            }
+
+            return;
+        }
+
+        if (event === 'database-kaggle-websites.csv') {
+            this.clauses = '';
+
+            const records = this.clausesService.getClausesWebsites().split('\n');
+
+            this.contractClauses = [];
+            this.clauseHeading = `Loaded ${records.length - 1} record(s) from database. Showing 100.`;
+
+            for (let i = 0; i < records.length; i++) {
+                if (i == 0)
+                    continue;
+
+                let websiteUrl = records[i].substring(0, records[i].indexOf(' '));
+                websiteUrl = websiteUrl.split(',')[0];
+
+                let description = records[i].substring(records[i].indexOf(' '), records[i].length);
+
+                this.contractClauses.push(`${websiteUrl} ${description}`);
+
+                if (i === 100)
+                    break;
+            }
+
+            return;
+        }
+
+        if (event === 'database-openai-employees.csv') {
+            this.clauses = '';
+
+            const records = this.clausesService.getClausesEmployees().split('\n');
+
+            this.contractClauses = [];
+            this.clauseHeading = `Loaded ${records.length - 1} record(s) from database. Showing 100.`;
+
+            for (let i = 0; i < records.length; i++) {
+                if (i == 0)
+                    continue;
+
+                this.contractClauses.push(this.clausesService.getClauseEmployee(records[i]));
+
+                if (i === 100)
+                    break;
+            }
+
+            return;
+        }
+
+        this.clauseHeading = '';
+        this.contractClauses = [];
+    }
+
+    onDatabaseClose() {
+        document.body.classList.remove('dialog-opened');
+        this.databaseOutputDialog.nativeElement.close();
+    }
+
+    async onDatabaseSearch() {
+        this.onDatabaseClose();
+
+        let clauses = this.clauses;
+        let similarity = 0.30;
+
+        if (clauses.trim().length === 0) {
+            if (this.databaseSelect.nativeElement.value === 'database-kaggle-contracts.csv') {
+                clauses = this.clausesService.getClausesContracts();
+                similarity = 0.75;
+            } else if (this.databaseSelect.nativeElement.value === 'database-openai-employees.csv') {
+                clauses = this.clausesService.getClausesEmployees();
+                similarity = 0.35;
+            } else if (this.databaseSelect.nativeElement.value === 'database-kaggle-websites.csv') {
+                clauses = this.clausesService.getClausesWebsites();
+                similarity = 0.85;
+            }
+        }
+
+        this.loading = true;
+
+        for (let i = 0; i < this.messagesDocuments.length; i++) {
+            try {
+                const response = await fetch(this.configuration.documentClausesEndpoint, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        "content": this.messagesDocuments[i].content.replaceAll('\r\n', ' ').replaceAll('\n', ' ') as string,
+                        "clauses": clauses,
+                        "similarity": similarity
+                    } as any),
+                    headers: {
+                        "Accept": "*/*"
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data && data[0]) {
+                    let additionalContent = '';
+                    let additionalContentHTML = '';
+
+                    (data as Array<any>).forEach(y => {
+                        let clause = y.clause;
+
+                        if (this.databaseSelect.nativeElement.value === 'database-openai-employees.csv') {
+                            clause = this.clausesService.getClauseEmployee(clause);
+                        }
+
+                        additionalContent += clause + ' ' + y.similarity + '\r\n';
+                        additionalContentHTML += `<tr><td>${clause}</td><td style="text-align: right;">${y.similarity}</td></tr>`;
+                    });
+
+                    if (additionalContent.length > 0) {
+                        this.messagesContext.push({ role: 'user', content: `The document "${this.messagesDocuments[i].filename}" has additional content found in clauses databases. The content is: ${additionalContent}` } as any);
+
+                        this.messages += `Document <b>${this.messagesDocuments[i].filename}</b> contains the following based on a similarity score greater than ${similarity}: <table><thead><tr><th>Reference</th><th style="width: 80px;">Similarity</th></tr></thead><tbody>${additionalContentHTML}</tbody></table>`;
+                    }
+                    else {
+                        this.messages += `Document <b>${this.messagesDocuments[i].filename}</b> does not contain any of the provided clauses.`;
+                    }
+                } else {
+                    this.messages += `Document <b>${this.messagesDocuments[i].filename}</b> does not contain any of the provided clauses.`;
+                }
+
+                this.scrollToBottom();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        this.loading = false;
+
+        this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
     }
 
     onDeploymentChange(element: any, configuration: any) {
@@ -507,6 +727,138 @@ export class ChatComponent implements OnInit {
         this.displaySettingsModel = false;
     }
 
+    onNewConversation(persona: string) {
+        this.onDeleteMessages();
+    }
+
+    onNewConversationSettings() {
+        this.persona = {
+            id: uuidv4().toString(),
+            name: '',
+            prompt: '',
+            instruction: ''
+        };
+
+        this.personas = this.getPersonas();
+
+        document.body.classList.add('dialog-opened');
+        this.conversationSettingsOutputDialog.nativeElement.showModal();
+    }
+
+    onNewConversationSettingsClose() {
+        document.body.classList.remove('dialog-opened');
+        this.conversationSettingsOutputDialog.nativeElement.close();
+    }
+
+    onNewConversationSettingsDelete(id: string) {
+        const personas = localStorage.getItem('AzureOpenAIDemo_Personas');
+
+        if (personas) {
+            let data = JSON.parse(personas) as Array<{
+                id: string,
+                name: string,
+                prompt: string,
+                instruction: string
+            }>;
+
+            if (data.filter(x => x.id === id).length > 0) {
+                data = data.filter(x => x.id !== id);
+            }
+
+            localStorage.setItem('AzureOpenAIDemo_Personas', JSON.stringify(data));
+        }
+
+        this.personas = this.getPersonas();
+    }
+
+    onNewConversationSettingsEdit(id: string) {
+        const personas = localStorage.getItem('AzureOpenAIDemo_Personas');
+
+        if (personas) {
+            const data = JSON.parse(personas) as Array<{
+                id: string,
+                name: string,
+                prompt: string,
+                instruction: string
+            }>;
+
+            const persona = data.find(x => x.id === id);
+
+            if (persona) {
+                this.persona.id = persona.id;
+                this.persona.name = persona.name;
+                this.persona.prompt = persona.prompt;
+                this.persona.instruction = persona.instruction;
+            }
+        }
+    }
+
+    onNewConversationSettingsSave() {
+        if (this.persona.name.length > 0 && this.persona.prompt.length > 0) {
+            const personas = localStorage.getItem('AzureOpenAIDemo_Personas');
+
+            if (personas) {
+                let data = JSON.parse(personas) as Array<{
+                    id: string,
+                    name: string,
+                    prompt: string,
+                    instruction: string
+                }>;
+
+                if (data.filter(x => x.id === this.persona.id).length > 0) {
+                    data = data.filter(x => x.id !== this.persona.id);
+                }
+
+                data.push(this.persona);
+
+                localStorage.setItem('AzureOpenAIDemo_Personas', JSON.stringify(data));
+            } else {
+                const data = new Array<{
+                    id: string,
+                    name: string,
+                    prompt: string,
+                    instruction: string
+                }>();
+
+                data.push(this.persona);
+
+                localStorage.setItem('AzureOpenAIDemo_Personas', JSON.stringify(data));
+            }
+
+            this.persona = {
+                id: uuidv4().toString(),
+                name: '',
+                prompt: '',
+                instruction: ''
+            };
+
+            this.personas = this.getPersonas();
+        }
+    }
+
+    onNewConversationSettingsStart(event: any, id: number) {
+        event.preventDefault();
+
+        const personas = localStorage.getItem('AzureOpenAIDemo_Personas');
+
+        if (personas) {
+            const data = JSON.parse(personas) as Array<{
+                id: number,
+                name: string,
+                prompt: string,
+                instruction: string
+            }>;
+
+            const persona = data.find(x => x.id === id);
+
+            if (persona) {
+                this.onPromptCreate(persona.prompt, persona.instruction);
+            }
+        }
+
+        this.onNewConversationSettingsClose();
+    }
+
     onOutputFilename() {
         document.body.classList.add('dialog-opened');
         this.saveOutputDialog.nativeElement.showModal();
@@ -545,21 +897,7 @@ export class ChatComponent implements OnInit {
             return;
         }
 
-        let filteredTimestamp = '';
-
-        if (this.performThresholdSearch && this.messagesDocuments.length > 0) {
-            if (this.messagesDocuments.filter(x => x.filter.length).length > 0) {
-                filteredTimestamp = 'This prompt is currently using document filters.<br />';
-            }
-        }
-
-        this.messages += `<div class="d-flex align-items-end flex-column"><div class="message-prompt mb-4 p-3 position-relative">${this.prompt}<span class="timestamp mt-4">${filteredTimestamp}${this.getTimestamp()}</span></div></div>`;
-
-        this.scrollToBottom();
-
-        await this.sendDocuments();
-        await this.sendWebsites(this.prompt);
-        this.sendMessage(this.prompt);
+        await this.sendMessage(this.prompt);
         this.reduceMessageContext();
 
         this.prompt = '';
@@ -716,10 +1054,10 @@ export class ChatComponent implements OnInit {
                     } else {
                         let content = x.content.toString();
 
-                        if ((x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) || this.configuration.documentThreshold == 0) {
-                            this.performThresholdSearch = true;
+                        this.messagesDocuments.push({ filename: x.filename, content, pages: x.pages, filter: '', statistics: `Contains ${(+x.statistics.words).toLocaleString('en-US')} on ${x.statistics.pages} page(s)` } as any);
 
-                            this.messagesDocuments.push({ filename: x.filename, content, pages: x.pages, filter: '', statistics: `Contains ${(+x.statistics.words).toLocaleString('en-US')} on ${x.statistics.pages} page(s)` } as any);
+                        if ((x.statistics && x.statistics.words && +x.statistics.words > +this.configuration.documentThreshold) || this.configuration.documentThreshold === 0) {
+                            this.performThresholdSearch = true;
 
                             if (+this.configuration.documentThreshold !== 0) {
                                 content = this.getFirstWordsByLength(content, +this.configuration.documentThreshold);
@@ -747,7 +1085,6 @@ export class ChatComponent implements OnInit {
                 if (this.configuration.documentThreshold > 0) {
                     documentsAboveThreshold += ` The first ${(+this.configuration.documentThreshold).toLocaleString('en-US')} words are automatically added to the conversational context.`;
                 }
-
             }
 
             if (emptyDocuments.length > 0)
@@ -823,12 +1160,36 @@ export class ChatComponent implements OnInit {
         }
     }
 
-    async sendMessage(prompt: string) {
+    async sendMessage(prompt: string): Promise<void> {
+        if (this.prompt.replace(/\s/g, '').length === 0) {
+            return;
+        }
+
+        console.log(this.prompt);
+
         try {
             const client = new OpenAIClient(
                 this.configuration.azureEndpoint,
                 new AzureKeyCredential(this.configuration.apiKey)
             );
+
+            let filteredTimestamp = '';
+            if (this.performThresholdSearch && this.messagesDocuments.length > 0) {
+                if (this.messagesDocuments.filter(x => x.filter.length).length > 0) {
+                    filteredTimestamp = 'This prompt is currently using document filters.<br />';
+                }
+            }
+
+            this.messages += `<div class="d-flex align-items-end flex-column">
+                <div class="message-prompt mb-4 p-3 position-relative">
+                    ${this.prompt}<span class="timestamp mt-4">${filteredTimestamp}${this.getTimestamp()}</span>
+                </div>
+            </div>`;
+
+            await this.sendDocuments();
+            await this.sendWebsites(this.prompt);
+
+            this.scrollToBottom();
 
             const messages = [
                 {
@@ -880,6 +1241,7 @@ export class ChatComponent implements OnInit {
                     }
                 }
             }
+
             this.getTextBetweenCodeBlocks(systemMessage);
 
             this.messages = this.messages.replace(systemMessage, this.getTextFromCodeBlockClass(systemMessage));
@@ -888,6 +1250,7 @@ export class ChatComponent implements OnInit {
             this.messagesContext.push({ role: 'system', content: systemMessage } as any);
 
             this.messages += `<span class="mb-4 mt-4 timestamp timestamp-system">${this.getTimestamp()}</span>`;
+            this.messages = this.messages.replace(/<!--SUMMARY:.*?-->/, '');
 
             if (this.summaryCount === 1) {
                 const regex = /<!--\s*SUMMARY:\s*(.*?)\s*-->/;
